@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'theme/app_theme.dart';
 import 'models/date_entry.dart';
 import 'models/spot.dart';
@@ -9,9 +11,13 @@ import 'services/preferences_service.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/spot_detail/spot_detail_screen.dart';
+import 'screens/auth/auth_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp();
   
   // Initialize Hive
   await Hive.initFlutter();
@@ -69,14 +75,28 @@ class _NextDateAppState extends State<NextDateApp> {
       }
     }
 
-    final bool onboardingDone = _prefs.isOnboardingComplete;
-
     return MaterialApp(
       key: _appKey,
       title: 'NextDate',
       debugShowCheckedModeBanner: false,
       theme: themeData,
-      home: onboardingDone ? const MainAppLoader() : const OnboardingScreen(),
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+          if (snapshot.hasData) {
+            final bool onboardingDone = _prefs.isOnboardingComplete;
+            return onboardingDone ? const MainAppLoader() : const OnboardingScreen();
+          }
+          return const AuthScreen();
+        },
+      ),
     );
   }
 }

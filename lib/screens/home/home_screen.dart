@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/preferences_service.dart';
 import '../../theme/app_theme.dart';
 import '../discover/discover_screen.dart';
@@ -9,6 +10,7 @@ import '../mutual_swipe/mutual_swipe_screen.dart';
 import '../surprise/surprise_screen.dart';
 import '../history/history_screen.dart';
 import '../onboarding/onboarding_screen.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -62,26 +64,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openSettings() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return _SettingsBottomSheet(
-          onDataReset: () {
-            Navigator.pop(context);
-            // Redirect to onboarding
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const OnboardingScreen()),
-            );
-          },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileScreen(
           onThemeChange: () {
-            // Trigger refresh
-            setState(() {});
+            if (mounted) {
+              setState(() {});
+            }
           },
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -426,6 +419,44 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
                 child: ElevatedButton(
                   onPressed: _saveSettings,
                   child: const Text("Save Changes"),
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Sign Out Button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.coralAccent,
+                    side: const BorderSide(color: AppTheme.coralAccent, width: 1.5),
+                  ),
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text("Sign Out?"),
+                        content: const Text("Are you sure you want to sign out? Your preferences and history will remain saved."),
+                        actions: [
+                          TextButton(
+                            child: const Text("Cancel"),
+                            onPressed: () => Navigator.pop(context, false),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(foregroundColor: AppTheme.coralAccent),
+                            child: const Text("Sign Out"),
+                            onPressed: () => Navigator.pop(context, true),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirm == true) {
+                      await FirebaseAuth.instance.signOut();
+                      if (mounted) {
+                        Navigator.pop(context); // Close bottom sheet
+                      }
+                    }
+                  },
+                  child: const Text("Sign Out"),
                 ),
               ),
               const SizedBox(height: 12),

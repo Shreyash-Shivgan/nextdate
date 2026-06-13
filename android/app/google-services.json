@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "984794503334",
+    "project_id": "nextdate-2409",
+    "storage_bucket": "nextdate-2409.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:984794503334:android:e49aa0ba39c33359b0bc67",
+        "android_client_info": {
+          "package_name": "com.shreyash.nextdate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBOklMoIMthYUz4UUs_A7rnZQ-R5tT3UI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
