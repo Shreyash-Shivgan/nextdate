@@ -45,7 +45,7 @@ dependencies:
   saver_gallery: ^3.0.6
   firebase_core: ^4.10.0
   firebase_auth: ^6.5.2
-  google_sign_in: ^7.2.0
+  google_sign_in: 6.2.1
 
 dev_dependencies:
   flutter_test:
