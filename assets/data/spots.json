@@ -1,0 +1,898 @@
+[
+  {
+    "id": "001",
+    "name": "Prithvi Cafe",
+    "neighborhood": "Juhu",
+    "category": "Café",
+    "vibe": ["Cozy", "Foodie"],
+    "budget": 1,
+    "avgSpend": 450,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80",
+    "aiBlurb": "An iconic open-air café surrounded by trees and lanterns. Perfect for post-play discussions or lazy afternoon tea over famous Irish coffee and cutting chai.",
+    "activities": ["Watch a live theater play", "Try the Irish Coffee & Cheese Toast", "Enjoy the lantern-lit evening ambiance"],
+    "bestTime": "Evening, 6:00 PM",
+    "checklist": ["Reach early to avoid queue", "Check play schedule online", "Order the hot chocolate"],
+    "lat": 19.1062,
+    "lng": 72.8258,
+    "comboSpotId": "002",
+    "communityReviews": [
+      {
+        "coupleName": "Aarav & Meera",
+        "review": "The Irish coffee is legendary! Sitting under the trees with fairy lights is so romantic.",
+        "vibeRating": "Cozy",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Kabir & Zara",
+        "review": "Amazing vibe. We watched a short play and ended our evening here with some hot parathas.",
+        "vibeRating": "Cultural",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "002",
+    "name": "Juhu Beach Chowpatty",
+    "neighborhood": "Juhu",
+    "category": "Beach",
+    "vibe": ["Adventurous", "Foodie"],
+    "budget": 1,
+    "avgSpend": 300,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    "aiBlurb": "A lively beach strip famous for its local street food. Walk barefoot along the shore as the sun dips below the horizon, then indulge in spicy Gola and Pav Bhaji.",
+    "activities": ["Walk along the shoreline", "Enjoy Gola and Kala Khatta", "Watch a beautiful sunset"],
+    "bestTime": "Evening, 5:30 PM",
+    "checklist": ["Carry wet wipes", "Keep footwear in hand", "Avoid visiting during heavy rains"],
+    "lat": 19.1002,
+    "lng": 72.8215,
+    "comboSpotId": "001",
+    "communityReviews": [
+      {
+        "coupleName": "Rohit & Pooja",
+        "review": "Walking by the shore at sunset is simple but magical. The Pav Bhaji was brilliant too!",
+        "vibeRating": "Adventurous",
+        "visitedOn": "April 2026"
+      },
+      {
+        "coupleName": "Amit & Sneha",
+        "review": "Crowded but fun. It's a classic Mumbai date spot for a reason.",
+        "vibeRating": "Foodie",
+        "visitedOn": "March 2026"
+      }
+    ]
+  },
+  {
+    "id": "003",
+    "name": "The Tasting Room",
+    "neighborhood": "Worli",
+    "category": "Restaurant",
+    "vibe": ["Cozy", "Cultural"],
+    "budget": 3,
+    "avgSpend": 2500,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80",
+    "aiBlurb": "An elegant, candlelit dining space nestled inside a luxury home decor store. Its Mediterranean menu and curated wine list set an intimate mood for special occasions.",
+    "activities": ["Sip on premium wines", "Browse the aesthetic home decor boutique", "Try the handmade mushroom ravioli"],
+    "bestTime": "Night, 8:00 PM",
+    "checklist": ["Reservations are mandatory", "Dress code is smart casuals", "Keep room for desserts"],
+    "lat": 19.0028,
+    "lng": 72.8252,
+    "comboSpotId": "004",
+    "communityReviews": [
+      {
+        "coupleName": "Dev & Rhea",
+        "review": "Absolutely stunning interiors. The candlelit atmosphere makes you forget you are in Mumbai.",
+        "vibeRating": "Cozy",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Aryan & Kiara",
+        "review": "Pricey but worth every rupee for an anniversary or special date night.",
+        "vibeRating": "Cozy",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "004",
+    "name": "Worli Sea Face",
+    "neighborhood": "Worli",
+    "category": "Scenic",
+    "vibe": ["Cozy", "Adventurous"],
+    "budget": 1,
+    "avgSpend": 100,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
+    "aiBlurb": "A serene promenade overlooking the Bandra-Worli Sea Link. Perfect for long conversations late at night with the cool sea breeze and crashing waves.",
+    "activities": ["Late-night walk along the sea", "Take photos with the Sea Link background", "Enjoy hot cutting chai from local vendors"],
+    "bestTime": "Late Night, 10:00 PM",
+    "checklist": ["Carry a light jacket", "Best visited post-dinner", "Mind the high tide sprays"],
+    "lat": 19.0182,
+    "lng": 72.8159,
+    "comboSpotId": "003",
+    "communityReviews": [
+      {
+        "coupleName": "Vikram & Aditi",
+        "review": "Sitting here at midnight watching the Sea Link glow is our favorite ritual.",
+        "vibeRating": "Cozy",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Sam & Tara",
+        "review": "Quiet, windy, and romantic. Perfect budget-friendly spot to talk for hours.",
+        "vibeRating": "Cozy",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "005",
+    "name": "Jehangir Art Gallery",
+    "neighborhood": "Fort",
+    "category": "Museum",
+    "vibe": ["Cultural", "Cozy"],
+    "budget": 1,
+    "avgSpend": 150,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1580537659444-1297eb700224?w=800&q=80",
+    "aiBlurb": "The hub of contemporary Indian art. Walk hand-in-hand through the exhibition halls, admiring works of prominent and upcoming painters and sculptors.",
+    "activities": ["Admire modern art exhibits", "Interact with local street artists outside", "Visit the iconic Samovar Cafe nearby"],
+    "bestTime": "Afternoon, 2:00 PM",
+    "checklist": ["Entry is free", "Photography is restricted in some halls", "Check current exhibit online"],
+    "lat": 18.9274,
+    "lng": 72.8316,
+    "comboSpotId": "006",
+    "communityReviews": [
+      {
+        "coupleName": "Nikhil & Isha",
+        "review": "A quiet haven in the middle of Fort. It sparks great conversations about art and life.",
+        "vibeRating": "Cultural",
+        "visitedOn": "February 2026"
+      },
+      {
+        "coupleName": "Rohan & Riya",
+        "review": "We love the vibe here, especially checking out the local paintings displayed on the pavement outside.",
+        "vibeRating": "Cultural",
+        "visitedOn": "April 2026"
+      }
+    ]
+  },
+  {
+    "id": "006",
+    "name": "David Sassoon Library",
+    "neighborhood": "Fort",
+    "category": "Library",
+    "vibe": ["Cozy", "Cultural"],
+    "budget": 1,
+    "avgSpend": 200,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=800&q=80",
+    "aiBlurb": "A gorgeous Gothic heritage library in the heart of Mumbai. Sit on the wooden armchairs overlooking the leafy garden balcony and read together in absolute peace.",
+    "activities": ["Read classic literature together", "Relax in the garden balcony", "Admire the Victorian architecture"],
+    "bestTime": "Morning, 11:00 AM",
+    "checklist": ["Maintain absolute silence", "Temporary day passes might be needed", "Perfect for reader couples"],
+    "lat": 18.9281,
+    "lng": 72.8319,
+    "comboSpotId": "005",
+    "communityReviews": [
+      {
+        "coupleName": "Varun & Tanvi",
+        "review": "Such a peaceful retreat. Reading side-by-side on the balcony felt like being in a movie.",
+        "vibeRating": "Cozy",
+        "visitedOn": "March 2026"
+      },
+      {
+        "coupleName": "Kabir & Alia",
+        "review": "Stunning architecture and a serene vibe. Perfect for couples who love books.",
+        "vibeRating": "Cozy",
+        "visitedOn": "January 2026"
+      }
+    ]
+  },
+  {
+    "id": "007",
+    "name": "Pizza By The Bay",
+    "neighborhood": "Marine Lines",
+    "category": "Restaurant",
+    "vibe": ["Foodie", "Cozy"],
+    "budget": 2,
+    "avgSpend": 1200,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80",
+    "aiBlurb": "Indulge in gourmet pizza with a panoramic view of the Arabian Sea. The Art Deco design and large window panes make it a premium coastal dining experience.",
+    "activities": ["Savor the Chicago deep dish pizza", "Watch waves crash right outside your window", "Walk along Marine Drive afterwards"],
+    "bestTime": "Evening, 6:00 PM",
+    "checklist": ["Ask for a window-facing table", "Great for early dinner dates", "Veg and non-veg both are fantastic"],
+    "lat": 18.9341,
+    "lng": 72.8228,
+    "comboSpotId": "008",
+    "communityReviews": [
+      {
+        "coupleName": "Armaan & Natasha",
+        "review": "The view is unbelievable. Watching the sunset while sharing a gourmet pizza is a core memory.",
+        "vibeRating": "Cozy",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Dhruv & Simran",
+        "review": "Gourmet food with standard high quality. Marine Drive walk post pizza is a must.",
+        "vibeRating": "Foodie",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "008",
+    "name": "Marine Drive Promenade",
+    "neighborhood": "Marine Lines",
+    "category": "Scenic",
+    "vibe": ["Cozy", "Cultural"],
+    "budget": 1,
+    "avgSpend": 50,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
+    "aiBlurb": "The 'Queen's Necklace' is the ultimate Mumbai romance landmark. Walk along the curved shoreline under the amber streetlights with the city skyline on one side.",
+    "activities": ["Walk along the 3km arc", "Sit on the parapet and watch the waves", "Buy roasted corn (bhutta) during monsoons"],
+    "bestTime": "Night, 9:00 PM",
+    "checklist": ["Highly crowded on weekends", "Great place for deep late-night chats", "Taxis are easily available"],
+    "lat": 18.9414,
+    "lng": 72.8229,
+    "comboSpotId": "007",
+    "communityReviews": [
+      {
+        "coupleName": "Ranbir & Alia",
+        "review": "No date beats sitting here, sharing a single bhutta, and looking at the sea.",
+        "vibeRating": "Cozy",
+        "visitedOn": "April 2026"
+      },
+      {
+        "coupleName": "Zayn & Maya",
+        "review": "The sea breeze, the lights, the tea... it's pure magic.",
+        "vibeRating": "Cozy",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "009",
+    "name": "Bandra Bandstand",
+    "neighborhood": "Bandra",
+    "category": "Scenic",
+    "vibe": ["Cozy", "Adventurous"],
+    "budget": 1,
+    "avgSpend": 100,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    "aiBlurb": "A rocky sea-facing promenade in Bandra, flanked by the Arabian Sea on one side and houses of Bollywood stars on the other. Includes the historical Bandra Fort ruins.",
+    "activities": ["Explore the Portuguese Bandra Fort ruins", "Sit on the rocks at low tide", "Walk along the Bollywood Walk of Stars"],
+    "bestTime": "Evening, 5:30 PM",
+    "checklist": ["Wear comfortable flat shoes", "Be careful on the slippery rocks", "Visit the fort before it closes at sunset"],
+    "lat": 19.0423,
+    "lng": 72.8189,
+    "comboSpotId": "010",
+    "communityReviews": [
+      {
+        "coupleName": "Rahul & Priya",
+        "review": "We loved sitting on the fort walls watching the sunset through the rocky arches. Breathtaking view!",
+        "vibeRating": "Cozy",
+        "visitedOn": "June 2026"
+      },
+      {
+        "coupleName": "Ishaan & Kiara",
+        "review": "A bit crowded but exploring the ruins is an adventure. Bandra vibe is great.",
+        "vibeRating": "Adventurous",
+        "visitedOn": "May 2026"
+      }
+    ]
+  },
+  {
+    "id": "010",
+    "name": "Olive Bar & Kitchen",
+    "neighborhood": "Bandra",
+    "category": "Restaurant",
+    "vibe": ["Foodie", "Cozy"],
+    "budget": 3,
+    "avgSpend": 3000,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80",
+    "aiBlurb": "A Mediterranean white-walled oasis in Bandra. Candlelit tables, gravel pathways, and soft music create a dreamy atmosphere perfect for an intimate romantic dinner.",
+    "activities": ["Enjoy gourmet Mediterranean cuisine", "Try their signature cocktails", "Take photos against the aesthetic white walls"],
+    "bestTime": "Night, 8:30 PM",
+    "checklist": ["Prior table booking is required", "Valet parking available", "Ask for an outdoor candlelit table"],
+    "lat": 19.0682,
+    "lng": 72.8251,
+    "comboSpotId": "009",
+    "communityReviews": [
+      {
+        "coupleName": "Raj & Simran",
+        "review": "It feels like Santorini in the middle of Mumbai. The food was exquisite!",
+        "vibeRating": "Cozy",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Karan & Tanya",
+        "review": "Incredible ambiance and wonderful hospitality. Perfect anniversary dinner.",
+        "vibeRating": "Cozy",
+        "visitedOn": "March 2026"
+      }
+    ]
+  },
+  {
+    "id": "011",
+    "name": "Powai Lake Garden",
+    "neighborhood": "Powai",
+    "category": "Park",
+    "vibe": ["Cozy", "Cultural"],
+    "budget": 1,
+    "avgSpend": 100,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&q=80",
+    "aiBlurb": "A quiet garden alongside the Powai Lake, offering beautiful views of the water, surrounding greenery, and the Hiranandani skyline. Perfect for a peaceful morning or evening stroll.",
+    "activities": ["Walk along the lake pathway", "Watch migratory birds", "Enjoy the cool evening breeze"],
+    "bestTime": "Evening, 5:00 PM",
+    "checklist": ["Carry mosquito repellent", "Avoid during hot afternoons", "Great photo spots near the lake edge"],
+    "lat": 19.1254,
+    "lng": 72.9056,
+    "comboSpotId": "012",
+    "communityReviews": [
+      {
+        "coupleName": "Nitin & Shruti",
+        "review": "So calm compared to the city hustle. We saw some beautiful birds and took great photos.",
+        "vibeRating": "Cozy",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Arjun & Neha",
+        "review": "Simple, green, and peaceful. Perfect before heading for dinner in Hiranandani.",
+        "vibeRating": "Cozy",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "012",
+    "name": "Hakone Entertainment",
+    "neighborhood": "Powai",
+    "category": "Activity",
+    "vibe": ["Adventurous", "Cultural"],
+    "budget": 2,
+    "avgSpend": 800,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80",
+    "aiBlurb": "Add some playful competition to your date! Hakone offers outdoor go-karting, paintball, bumper cars, and arcade games in Powai.",
+    "activities": ["Race in high-speed go-karts", "Challenge each other in arcade games", "Try the mini golf course"],
+    "bestTime": "Evening, 6:00 PM",
+    "checklist": ["Wear sports shoes for go-karting", "Go on weekdays for shorter queues", "Purchase package deals for discounts"],
+    "lat": 19.1171,
+    "lng": 72.9079,
+    "comboSpotId": "011",
+    "communityReviews": [
+      {
+        "coupleName": "Manish & Shreya",
+        "review": "We raced each other in go-karts and it was exhilarating! So much fun.",
+        "vibeRating": "Adventurous",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Aashish & Mansi",
+        "review": "Great stress-buster. Go-kart track is decent and games are nostalgic.",
+        "vibeRating": "Adventurous",
+        "visitedOn": "April 2026"
+      }
+    ]
+  },
+  {
+    "id": "013",
+    "name": "Versova Beach",
+    "neighborhood": "Versova",
+    "category": "Beach",
+    "vibe": ["Adventurous", "Cozy"],
+    "budget": 1,
+    "avgSpend": 150,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    "aiBlurb": "A clean, peaceful beach known for community clean-up efforts and stunning sunset views. Less crowded than Juhu, ideal for a quiet, long walk.",
+    "activities": ["Walk on the sandy shore", "Watch fishermen bring in their catch", "Enjoy coconut water under the sun"],
+    "bestTime": "Evening, 5:30 PM",
+    "checklist": ["Carry beach sandals", "Best visited during sunset hours", "Take a ferry ride to Madh Island if early"],
+    "lat": 19.1362,
+    "lng": 72.8101,
+    "comboSpotId": "014",
+    "communityReviews": [
+      {
+        "coupleName": "Sahil & Divya",
+        "review": "Much cleaner than other beaches. We sat by the water and watched a mesmerizing orange sunset.",
+        "vibeRating": "Cozy",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Vivek & Natasha",
+        "review": "Quiet beach walk followed by a ferry trip. Very romantic and pocket-friendly.",
+        "vibeRating": "Cozy",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "014",
+    "name": "Versova Social",
+    "neighborhood": "Versova",
+    "category": "Bar",
+    "vibe": ["Foodie", "Adventurous"],
+    "budget": 2,
+    "avgSpend": 1200,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80",
+    "aiBlurb": "A stylish bar and restaurant with a coastal-shack vibe. Features creative cocktails, great food, and lively music in a Victorian-greenhouse inspired design.",
+    "activities": ["Try their signature LLIITs", "Share a plate of nachos or kebabs", "Vibe to live DJ music"],
+    "bestTime": "Night, 8:00 PM",
+    "checklist": ["Get on the guestlist for weekend entries", "Try the beach-view corner seating", "Enjoy happy hours on weekdays"],
+    "lat": 19.1402,
+    "lng": 72.8122,
+    "comboSpotId": "013",
+    "communityReviews": [
+      {
+        "coupleName": "Rohan & Mira",
+        "review": "The cocktails here are crazy good! The greenhouse theme is super pretty.",
+        "vibeRating": "Foodie",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Kunal & Shraddha",
+        "review": "Super energetic vibe. Perfect place to let loose on a Saturday night.",
+        "vibeRating": "Adventurous",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "015",
+    "name": "Gateway of India",
+    "neighborhood": "Colaba",
+    "category": "Scenic",
+    "vibe": ["Cultural", "Adventurous"],
+    "budget": 1,
+    "avgSpend": 200,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
+    "aiBlurb": "Mumbai's most recognizable landmark. Watch the yachts bobbing in the harbor, feel the heritage air, and take a ferry ride in the Arabian Sea.",
+    "activities": ["Take a ferry ride in the harbor", "Get a photo clicked by street photographers", "Admire the Taj Mahal Palace Hotel structure"],
+    "bestTime": "Morning, 7:30 AM",
+    "checklist": ["Visit early morning to avoid crowds", "Ferry tickets are cheap and bought on spot", "Check out Taj Palace bakery afterwards"],
+    "lat": 18.9220,
+    "lng": 72.8347,
+    "comboSpotId": "016",
+    "communityReviews": [
+      {
+        "coupleName": "Aniket & Preeti",
+        "review": "A morning ferry ride here is so refreshing. The cool sea breeze is the best.",
+        "vibeRating": "Adventurous",
+        "visitedOn": "April 2026"
+      },
+      {
+        "coupleName": "Sunil & Pooja",
+        "review": "Classic location. Looking at the Taj Hotel lit up at night is beautiful.",
+        "vibeRating": "Cultural",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "016",
+    "name": "Leopold Cafe",
+    "neighborhood": "Colaba",
+    "category": "Café",
+    "vibe": ["Foodie", "Cultural"],
+    "budget": 2,
+    "avgSpend": 900,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80",
+    "aiBlurb": "Established in 1871, this historic cafe is a Mumbai institution. Popularized by the novel 'Shantaram', it boasts a retro atmosphere, cold beers, and comfort food.",
+    "activities": ["Sip on chilled draught beer", "Try the roasted chicken or beef chili", "Read and absorb the historic vibe"],
+    "bestTime": "Afternoon, 1:00 PM",
+    "checklist": ["Expect a short wait for seating", "Be aware of historic bullet marks on walls", "No reservations, walk-in only"],
+    "lat": 18.9227,
+    "lng": 72.8322,
+    "comboSpotId": "015",
+    "communityReviews": [
+      {
+        "coupleName": "Jack & Jill",
+        "review": "So full of history and energy. The food is delicious and beer is ice cold.",
+        "vibeRating": "Foodie",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Varun & Anjali",
+        "review": "Crowded and noisy but the heritage charm is undeniable. We loved it.",
+        "vibeRating": "Cultural",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "017",
+    "name": "Dadar Chowpatty",
+    "neighborhood": "Dadar",
+    "category": "Beach",
+    "vibe": ["Cozy", "Adventurous"],
+    "budget": 1,
+    "avgSpend": 100,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80",
+    "aiBlurb": "A quiet beach offering clear, unobstructed views of the Bandra-Worli Sea Link. Ideal for a slow evening walk followed by local Maharashtrian snacks in Dadar.",
+    "activities": ["View the Sea Link at sunset", "Taste authentic Maharashtrian Bhel", "Walk on the sandy beach"],
+    "bestTime": "Evening, 6:00 PM",
+    "checklist": ["Avoid swimming in the water", "Visit during high tide for better views", "Easily accessible from Dadar station"],
+    "lat": 19.0279,
+    "lng": 72.8356,
+    "comboSpotId": "018",
+    "communityReviews": [
+      {
+        "coupleName": "Ganesh & Snehal",
+        "review": "The view of the Sea Link from here is amazing and less chaotic than Bandra.",
+        "vibeRating": "Cozy",
+        "visitedOn": "June 2026"
+      },
+      {
+        "coupleName": "Rahul & Sayali",
+        "review": "Chilled out place, and the Bhel Puri here is exceptionally spicy and tasty.",
+        "vibeRating": "Foodie",
+        "visitedOn": "May 2026"
+      }
+    ]
+  },
+  {
+    "id": "018",
+    "name": "Shivaji Park",
+    "neighborhood": "Dadar",
+    "category": "Park",
+    "vibe": ["Cozy", "Cultural"],
+    "budget": 1,
+    "avgSpend": 150,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&q=80",
+    "aiBlurb": "The cradle of Indian cricket and a massive open park. Walk along the outer ring pathway, sit on the stone walls, and enjoy local street foods.",
+    "activities": ["Walk the perimeter of Shivaji Park", "Eat Vada Pav or Franky from local stalls", "Watch budding cricketers practice in the nets"],
+    "bestTime": "Evening, 6:30 PM",
+    "checklist": ["Join the locals sitting on the parapet", "Try the famous Kirti College Vada Pav nearby", "Best visited in the evening hours"],
+    "lat": 19.0252,
+    "lng": 72.8378,
+    "comboSpotId": "017",
+    "communityReviews": [
+      {
+        "coupleName": "Sachin & Ashwini",
+        "review": "Walking here at sunset and sitting on the stone wall is a classic Dadar romance.",
+        "vibeRating": "Cultural",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Ajay & Pallavi",
+        "review": "Love the peaceful energy and the street food options. Kirti College Vada Pav is a must!",
+        "vibeRating": "Foodie",
+        "visitedOn": "April 2026"
+      }
+    ]
+  },
+  {
+    "id": "019",
+    "name": "Chhatrapati Shivaji Maharaj Museum",
+    "neighborhood": "Fort",
+    "category": "Museum",
+    "vibe": ["Cultural", "Cozy"],
+    "budget": 2,
+    "avgSpend": 500,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1580537659444-1297eb700224?w=800&q=80",
+    "aiBlurb": "A magnificent Indo-Saracenic building housing ancient Indian relics, sculptures, and miniature paintings. Its high ceilings, wooden floors, and lush green lawns make it a majestic date spot.",
+    "activities": ["Explore ancient archaeological galleries", "Stroll through the manicured lawns", "Buy heritage souvenirs at the gift shop"],
+    "bestTime": "Afternoon, 1:30 PM",
+    "checklist": ["Tickets required (approx. ₹150 for locals)", "No bag packs allowed inside", "Audio guides are highly recommended"],
+    "lat": 18.9269,
+    "lng": 72.8327,
+    "comboSpotId": "020",
+    "communityReviews": [
+      {
+        "coupleName": "Abhay & Tina",
+        "review": "Such a regal building. We spent three hours exploring and still wanted more.",
+        "vibeRating": "Cultural",
+        "visitedOn": "March 2026"
+      },
+      {
+        "coupleName": "Pranav & Nikita",
+        "review": "The architecture itself is worth the entry fee. Very quiet and educational.",
+        "vibeRating": "Cultural",
+        "visitedOn": "May 2026"
+      }
+    ]
+  },
+  {
+    "id": "020",
+    "name": "Bombay Vintage",
+    "neighborhood": "Colaba",
+    "category": "Restaurant",
+    "vibe": ["Foodie", "Cultural"],
+    "budget": 2,
+    "avgSpend": 1400,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80",
+    "aiBlurb": "A restaurant celebrating the culinary heritage of Bombay. Serving old-school regional delicacies with a modern twist in a nostalgic, photo-filled room.",
+    "activities": ["Try Prawns Koliwada or Kokum soda", "Look at vintage photographs of old Bombay", "Order their fusion desserts"],
+    "bestTime": "Night, 8:00 PM",
+    "checklist": ["Reserve on weekends", "Excellent options for fish lovers", "Try their signature filter coffee pudding"],
+    "lat": 18.9250,
+    "lng": 72.8309,
+    "comboSpotId": "019",
+    "communityReviews": [
+      {
+        "coupleName": "Kedar & Gauri",
+        "review": "Very cozy and nostalgia-filled. The Kokum cooler was so refreshing!",
+        "vibeRating": "Foodie",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Hrishikesh & Mrunal",
+        "review": "Terrific Parsi and Maharashtrian dishes. Aesthetic is gorgeous.",
+        "vibeRating": "Foodie",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "021",
+    "name": "Mystery Rooms Mumbai",
+    "neighborhood": "Andheri",
+    "category": "Activity",
+    "vibe": ["Adventurous", "Cultural"],
+    "budget": 3,
+    "avgSpend": 1800,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80",
+    "aiBlurb": "Test your chemistry under pressure! An interactive escape room game where you work as a team to solve mysteries and escape in 60 minutes.",
+    "activities": ["Solve complex riddles and puzzles", "Choose from different difficulty themes", "Test your coordination and logic"],
+    "bestTime": "Afternoon, 3:00 PM",
+    "checklist": ["Book slots online in advance", "Teams of 2 are welcome", "Wear comfortable clothing"],
+    "lat": 19.1215,
+    "lng": 72.8362,
+    "comboSpotId": "022",
+    "communityReviews": [
+      {
+        "coupleName": "Sid & Sarah",
+        "review": "We escaped with just 2 minutes to spare! Super thrilling and bonded us closer.",
+        "vibeRating": "Adventurous",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Kshitij & Shweta",
+        "review": "A different kind of date. Perfect if you are bored of standard dinner and movie.",
+        "vibeRating": "Adventurous",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "022",
+    "name": "Doolally Taproom",
+    "neighborhood": "Andheri",
+    "category": "Bar",
+    "vibe": ["Foodie", "Cozy"],
+    "budget": 2,
+    "avgSpend": 1300,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80",
+    "aiBlurb": "A warm, pet-friendly microbrewery in Andheri. Sample artisanal craft beers, play board games, and dig into their legendary house fries with dip.",
+    "activities": ["Taste a flight of craft beers", "Play Jenga or Catan from their stash", "Order Apple Cider or Stout"],
+    "bestTime": "Evening, 7:00 PM",
+    "checklist": ["House fries are mandatory", "Pet-friendly (you might see cute dogs)", "Board games are free to use"],
+    "lat": 19.1308,
+    "lng": 72.8385,
+    "comboSpotId": "021",
+    "communityReviews": [
+      {
+        "coupleName": "Rishabh & Shreya",
+        "review": "The Mango Cider and house fries made our evening. Very chilled out atmosphere.",
+        "vibeRating": "Foodie",
+        "visitedOn": "April 2026"
+      },
+      {
+        "coupleName": "Tushar & Apoorva",
+        "review": "We played board games for hours. Super relaxed and friendly staff.",
+        "vibeRating": "Cozy",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "023",
+    "name": "Colaba Causeway Market",
+    "neighborhood": "Colaba",
+    "category": "Market",
+    "vibe": ["Adventurous", "Foodie"],
+    "budget": 1,
+    "avgSpend": 400,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800&q=80",
+    "aiBlurb": "A vibrant, busy street market packed with colorful jewelry, antique artifacts, clothing, and books. Perfect for couples who love bargain hunting and street vibes.",
+    "activities": ["Shop for unique antique artifacts", "Bargain for quirky silver jewelry", "Enjoy snacks at nearby cafe lanes"],
+    "bestTime": "Evening, 4:30 PM",
+    "checklist": ["Use your best bargaining skills", "Carry cash for easy shopping", "Keep an eye on personal belongings"],
+    "lat": 18.9205,
+    "lng": 72.8317,
+    "comboSpotId": "024",
+    "communityReviews": [
+      {
+        "coupleName": "Farhan & Sofia",
+        "review": "Shopping here is an absolute adventure. Found some amazing antique clocks!",
+        "vibeRating": "Adventurous",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Aman & Pooja",
+        "review": "Very lively. We bought matching bracelets and ate delicious street food.",
+        "vibeRating": "Foodie",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "024",
+    "name": "Aer Lounge Four Seasons",
+    "neighborhood": "Worli",
+    "category": "Bar",
+    "vibe": ["Cozy", "Foodie"],
+    "budget": 3,
+    "avgSpend": 4500,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80",
+    "aiBlurb": "A rooftop bar on the 34th floor, offering unparalleled 360-degree panoramic views of the city skyline and the Arabian Sea. Truly a premium and luxurious date location.",
+    "activities": ["Sip high-end cocktails at sunset", "Look down at the glittering city lights", "Enjoy luxury lounge music under the stars"],
+    "bestTime": "Evening, 6:00 PM",
+    "checklist": ["Smart casual dress code mandatory", "Prior reservations highly recommended", "Go around sunset for maximum scenic appeal"],
+    "lat": 18.9922,
+    "lng": 72.8211,
+    "comboSpotId": "023",
+    "communityReviews": [
+      {
+        "coupleName": "Viren & Radhika",
+        "review": "The view from the top is spectacular! Cocktails are amazing. Best sunset date ever.",
+        "vibeRating": "Cozy",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Anand & Priya",
+        "review": "Pure luxury. Perfect for celebrating a milestone or proposal.",
+        "vibeRating": "Cozy",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "025",
+    "name": "The Yoga House",
+    "neighborhood": "Bandra",
+    "category": "Café",
+    "vibe": ["Cozy", "Foodie"],
+    "budget": 2,
+    "avgSpend": 950,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80",
+    "aiBlurb": "A beautiful, tranquil blue-and-white villa in Bandra serving healthy, organic, vegetarian food. Its zen-like environment provides a refreshing escape for a peaceful conversation.",
+    "activities": ["Try the signature detox juices", "Enjoy healthy organic salads and pasta", "Relax on floor cushions in the attic"],
+    "bestTime": "Morning, 9:30 AM",
+    "checklist": ["Take off shoes at the entrance", "Perfect for a post-morning-walk breakfast", "Try their signature healthy desserts"],
+    "lat": 19.0620,
+    "lng": 72.8242,
+    "comboSpotId": "026",
+    "communityReviews": [
+      {
+        "coupleName": "Kabir & Neha",
+        "review": "So calming! The organic pesto pasta was out of this world.",
+        "vibeRating": "Cozy",
+        "visitedOn": "June 2026"
+      },
+      {
+        "coupleName": "Rishi & Divya",
+        "review": "We spent a lazy Sunday morning reading books and drinking green tea. Absolute bliss.",
+        "vibeRating": "Cozy",
+        "visitedOn": "May 2026"
+      }
+    ]
+  },
+  {
+    "id": "026",
+    "name": "Carter Road Promenade",
+    "neighborhood": "Bandra",
+    "category": "Scenic",
+    "vibe": ["Cozy", "Foodie"],
+    "budget": 1,
+    "avgSpend": 150,
+    "indoor": false,
+    "imageUrl": "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80",
+    "aiBlurb": "A picturesque seaside walkway in Bandra. Dotted with juice centers and food parlors, it is the perfect spot to walk, talk, and grab a quick dessert.",
+    "activities": ["Walk by the sea under palm trees", "Eat frozen yogurt or bubble tea", "Listen to busking musicians in the evening"],
+    "bestTime": "Evening, 6:00 PM",
+    "checklist": ["Try the local waffle and ice cream shops", "Street parking is tough on weekends", "Highly active and cheerful crowd"],
+    "lat": 19.0664,
+    "lng": 72.8213,
+    "comboSpotId": "025",
+    "communityReviews": [
+      {
+        "coupleName": "Aman & Riya",
+        "review": "We got waffles, sat on the benches, and watched the dogs play. Simple and sweet.",
+        "vibeRating": "Cozy",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Prateek & Aditi",
+        "review": "Always full of life. Great place for a casual date walk.",
+        "vibeRating": "Cozy",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "027",
+    "name": "Smaaash",
+    "neighborhood": "Worli",
+    "category": "Activity",
+    "vibe": ["Adventurous", "Foodie"],
+    "budget": 3,
+    "avgSpend": 1600,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80",
+    "aiBlurb": "A massive indoor active-entertainment arena in Worli. Play virtual reality games, twilight bowling, laser tag, and indoor cricket.",
+    "activities": ["Play a game of twilight bowling", "Experience immersive VR rollercoasters", "Enjoy pizza and drinks at the sports bar"],
+    "bestTime": "Afternoon, 4:00 PM",
+    "checklist": ["Buy a combo card for savings", "Bowling shoes are rented on-site", "Loud music and arcade lights inside"],
+    "lat": 19.0069,
+    "lng": 72.8244,
+    "comboSpotId": "028",
+    "communityReviews": [
+      {
+        "coupleName": "Ishaan & Sneha",
+        "review": "Twilight bowling was fantastic! We had a blast competing with each other.",
+        "vibeRating": "Adventurous",
+        "visitedOn": "April 2026"
+      },
+      {
+        "coupleName": "Varun & Juhi",
+        "review": "Great energy and plenty of interactive games. Perfect weekend activity.",
+        "vibeRating": "Adventurous",
+        "visitedOn": "June 2026"
+      }
+    ]
+  },
+  {
+    "id": "028",
+    "name": "High Street Phoenix Mall",
+    "neighborhood": "Worli",
+    "category": "Market",
+    "vibe": ["Foodie", "Adventurous"],
+    "budget": 2,
+    "avgSpend": 1000,
+    "indoor": true,
+    "imageUrl": "https://images.unsplash.com/photo-1533900298318-6b8da08a523e?w=800&q=80",
+    "aiBlurb": "A massive lifestyle destination offering premium shopping, multi-cuisine dining options, and luxury cinema. Perfect for a combined movie, shopping, and food date.",
+    "activities": ["Watch a premium movie at IMAX", "Explore luxury brand outlets", "Dine at the massive food court or restaurants"],
+    "bestTime": "Afternoon, 2:00 PM",
+    "checklist": ["Park in the multi-level parking", "Check out the open courtyard for weekend pop-ups", "Excellent indoor spot during monsoons"],
+    "lat": 18.9950,
+    "lng": 72.8250,
+    "comboSpotId": "027",
+    "communityReviews": [
+      {
+        "coupleName": "Rohan & Shruti",
+        "review": "It has everything. We caught an IMAX show and then dined in the courtyard.",
+        "vibeRating": "Foodie",
+        "visitedOn": "May 2026"
+      },
+      {
+        "coupleName": "Deepak & Risha",
+        "review": "Our go-to mall. Clean, premium, and perfect to escape the Mumbai rain.",
+        "vibeRating": "Adventurous",
+        "visitedOn": "June 2026"
+      }
+    ]
+  }
+]
