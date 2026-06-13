@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../../services/preferences_service.dart';
+import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 import '../onboarding/onboarding_screen.dart';
 
@@ -19,7 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _p1Controller;
-  late TextEditingController _p2Controller;
+  late TextEditingController _partnerCodeController;
   DateTime? _anniversaryDate;
   String _themeOverride = "auto";
   User? _currentUser;
@@ -29,7 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     _currentUser = FirebaseAuth.instance.currentUser;
     _p1Controller = TextEditingController(text: _prefs.partner1Name);
-    _p2Controller = TextEditingController(text: _prefs.partner2Name);
+    _partnerCodeController = TextEditingController();
     _themeOverride = _prefs.themeOverride;
     
     final annivStr = _prefs.anniversaryDate;
@@ -41,7 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _p1Controller.dispose();
-    _p2Controller.dispose();
+    _partnerCodeController.dispose();
     super.dispose();
   }
 
@@ -71,15 +72,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _linkPartner() async {
+    final code = _partnerCodeController.text.trim();
+    if (code.isEmpty || code.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter a valid 6-character partner code!"),
+          backgroundColor: AppTheme.coralAccent,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final supabaseService = SupabaseService();
+      final partnerUid = await supabaseService.getPartnerUidByCode(code);
+      if (partnerUid != null) {
+        await _prefs.setLinkedPartnerUid(partnerUid);
+        setState(() {});
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Linked successfully with partner! 🔗"),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Invalid Couple Code. Please check and try again."),
+              backgroundColor: AppTheme.coralAccent,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error linking partner: $e"),
+            backgroundColor: AppTheme.coralAccent,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _saveSettings() async {
     if (!_formKey.currentState!.validate()) return;
 
     await _prefs.setPartner1Name(_p1Controller.text.trim());
-    await _prefs.setPartner2Name(_p2Controller.text.trim());
     await _prefs.setThemeOverride(_themeOverride);
 
     if (_anniversaryDate != null) {
       await _prefs.setAnniversaryDate(_anniversaryDate!.toIso8601String());
+    }
+
+    try {
+      final supabaseService = SupabaseService();
+      await supabaseService.upsertProfile(
+        name: _p1Controller.text.trim(),
+        vibes: _prefs.vibePrefs,
+        budget: _prefs.budgetPref,
+      );
+    } catch (e) {
+      print("Failed to upsert profile in Supabase: $e");
     }
 
     widget.onThemeChange();
@@ -254,20 +313,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         validator: (val) => val == null || val.trim().isEmpty ? "Cannot be empty" : null,
                       ),
                       const SizedBox(height: 16),
-                      // Partner 2
-                      TextFormField(
-                        controller: _p2Controller,
-                        style: TextStyle(color: isDark ? Colors.white : AppTheme.primaryNavy),
-                        decoration: InputDecoration(
-                          labelText: "Partner's Name",
-                          prefixIcon: const Icon(Icons.favorite_border_rounded, color: AppTheme.softGrey),
-                          filled: true,
-                          fillColor: isDark ? AppTheme.primaryNavy : Colors.grey.shade50,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        validator: (val) => val == null || val.trim().isEmpty ? "Cannot be empty" : null,
-                      ),
-                      const SizedBox(height: 16),
                       // Anniversary
                       InkWell(
                         onTap: _selectDate,
@@ -295,6 +340,88 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Couple Connection Section
+              Text(
+                "Couple Sync",
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.coralAccent,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Your Link Code:",
+                        style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          SelectableText(
+                            FirebaseAuth.instance.currentUser?.uid.substring(0, 6).toUpperCase() ?? '',
+                            style: GoogleFonts.outfit(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.coralAccent,
+                              letterSpacing: 2.0,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.copy, size: 16, color: AppTheme.softGrey),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Enter Partner's Link Code:",
+                        style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _partnerCodeController,
+                              style: TextStyle(color: isDark ? Colors.white : AppTheme.primaryNavy),
+                              decoration: InputDecoration(
+                                hintText: "ABC123",
+                                filled: true,
+                                fillColor: isDark ? AppTheme.primaryNavy : Colors.grey.shade50,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            onPressed: _linkPartner,
+                            child: const Text("Link"),
+                          ),
+                        ],
+                      ),
+                      if (_prefs.linkedPartnerUid.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        const Row(
+                          children: [
+                            Icon(Icons.link, color: Colors.green, size: 18),
+                            SizedBox(width: 8),
+                            Text(
+                              "Linked successfully with partner!",
+                              style: TextStyle(color: Colors.green, fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

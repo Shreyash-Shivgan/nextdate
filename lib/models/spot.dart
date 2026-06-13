@@ -16,6 +16,7 @@ class Spot {
   final double lng;
   final String? comboSpotId;
   final List<CommunityReview> communityReviews;
+  final double? rating;
 
   Spot({
     required this.id,
@@ -35,6 +36,7 @@ class Spot {
     required this.lng,
     this.comboSpotId,
     required this.communityReviews,
+    this.rating,
   });
 
   factory Spot.fromJson(Map<String, dynamic> json) {
@@ -55,9 +57,12 @@ class Spot {
       lat: (json['lat'] as num).toDouble(),
       lng: (json['lng'] as num).toDouble(),
       comboSpotId: json['comboSpotId'] as String?,
-      communityReviews: (json['communityReviews'] as List)
-          .map((r) => CommunityReview.fromJson(r as Map<String, dynamic>))
-          .toList(),
+      communityReviews: json['communityReviews'] != null
+          ? (json['communityReviews'] as List)
+              .map((r) => CommunityReview.fromJson(r as Map<String, dynamic>))
+              .toList()
+          : [],
+      rating: json['rating'] != null ? (json['rating'] as num).toDouble() : null,
     );
   }
 
@@ -80,6 +85,7 @@ class Spot {
       'lng': lng,
       'comboSpotId': comboSpotId,
       'communityReviews': communityReviews.map((r) => r.toJson()).toList(),
+      'rating': rating,
     };
   }
 }
@@ -89,12 +95,14 @@ class CommunityReview {
   final String review;
   final String vibeRating;
   final String visitedOn;
+  final String? photoUrl;
 
   CommunityReview({
     required this.coupleName,
     required this.review,
     required this.vibeRating,
     required this.visitedOn,
+    this.photoUrl,
   });
 
   factory CommunityReview.fromJson(Map<String, dynamic> json) {
@@ -103,6 +111,7 @@ class CommunityReview {
       review: json['review'] as String,
       vibeRating: json['vibeRating'] as String,
       visitedOn: json['visitedOn'] as String,
+      photoUrl: json['photoUrl'] as String?,
     );
   }
 
@@ -112,6 +121,7 @@ class CommunityReview {
       'review': review,
       'vibeRating': vibeRating,
       'visitedOn': visitedOn,
+      'photoUrl': photoUrl,
     };
   }
 }

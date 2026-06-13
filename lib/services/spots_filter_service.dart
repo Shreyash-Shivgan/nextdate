@@ -1,4 +1,3 @@
-import 'dart:math';
 import '../models/spot.dart';
 import '../data/spots_repository.dart';
 import 'preferences_service.dart';
@@ -60,7 +59,6 @@ class SpotsFilterService {
   // Main Filtering Method for Discover
   List<Spot> getFilteredSpots({
     required WeatherStatus weather,
-    required String selectedMood,
     String? category,
   }) {
     List<Spot> list = _getUndislikedSpots();
@@ -75,7 +73,7 @@ class SpotsFilterService {
       list = list.where((s) => s.category.toLowerCase() == category.toLowerCase()).toList();
     }
 
-    // Score spots based on Saved Preferences + Mood
+    // Score spots based on Saved Preferences
     final scored = list.map((spot) {
       double score = 0.0;
 
@@ -96,9 +94,6 @@ class SpotsFilterService {
         score -= 1.0; // Penalty for over-budget
       }
 
-      // 3. Mood alignment
-      score += _getMoodScore(spot, selectedMood);
-
       return _ScoredSpot(spot, score);
     }).toList();
 
@@ -106,53 +101,6 @@ class SpotsFilterService {
     scored.sort((a, b) => b.score.compareTo(a.score));
 
     return scored.map((s) => s.spot).toList();
-  }
-
-  double _getMoodScore(Spot spot, String mood) {
-    // Low-key / Spontaneous / Special Night / Adventure
-    switch (mood) {
-      case 'Low-key':
-        double score = 0.0;
-        if (spot.budget == 1) score += 1.5;
-        if (spot.vibe.contains('Cozy')) score += 1.0;
-        if (spot.category == 'Café' || spot.category == 'Library') score += 1.0;
-        return score;
-
-      case 'Spontaneous':
-        double score = 0.0;
-        if (spot.category == 'Café' || spot.category == 'Scenic' || spot.category == 'Market') score += 1.5;
-        if (spot.vibe.contains('Adventurous')) score += 1.0;
-        return score;
-
-      case 'Special Night':
-        double score = 0.0;
-        if (spot.budget >= 2) score += 1.5;
-        if (spot.category == 'Restaurant' || spot.category == 'Bar') score += 1.5;
-        if (spot.vibe.contains('Cozy')) score += 1.0;
-        return score;
-
-      case 'Adventure':
-        double score = 0.0;
-        if (spot.category == 'Activity' || spot.category == 'Beach' || spot.category == 'Park') score += 1.5;
-        if (spot.vibe.contains('Adventurous')) score += 1.5;
-        return score;
-
-      default:
-        return 0.0;
-    }
-  }
-
-  // Spark Me Roulette Selection (returns 5-6 candidate spots)
-  List<Spot> getSparkMeCandidates({
-    required WeatherStatus weather,
-    required String selectedMood,
-  }) {
-    final filtered = getFilteredSpots(weather: weather, selectedMood: selectedMood);
-    if (filtered.isEmpty) return [];
-    
-    // Take top 5-6 scored spots, or random if list is small
-    final count = min(6, filtered.length);
-    return filtered.sublist(0, count);
   }
 }
 

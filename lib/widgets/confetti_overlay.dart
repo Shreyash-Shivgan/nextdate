@@ -9,14 +9,12 @@ import '../screens/spot_detail/spot_detail_screen.dart';
 class ConfettiOverlay extends StatefulWidget {
   final Spot spot;
   final String partner1;
-  final String partner2;
   final VoidCallback onDismiss;
 
   const ConfettiOverlay({
     Key? key,
     required this.spot,
     required this.partner1,
-    required this.partner2,
     required this.onDismiss,
   }) : super(key: key);
 
@@ -152,7 +150,7 @@ class _ConfettiOverlayState extends State<ConfettiOverlay> {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      "${widget.partner1}  ❤️  ${widget.partner2}",
+                      "${widget.partner1} ❤️",
                       style: GoogleFonts.outfit(
                         fontSize: 18,
                         color: Colors.white,

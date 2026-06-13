@@ -26,10 +26,12 @@ class PreferencesService {
     await _prefs.setString('partner1_name', name);
   }
 
-  String get partner2Name => _prefs.getString('partner2_name') ?? '';
-  Future<void> setPartner2Name(String name) async {
-    await _prefs.setString('partner2_name', name);
+  // Linked Partner UID
+  String get linkedPartnerUid => _prefs.getString('linked_partner_uid') ?? '';
+  Future<void> setLinkedPartnerUid(String uid) async {
+    await _prefs.setString('linked_partner_uid', uid);
   }
+
 
   // Vibe Preferences
   List<String> get vibePrefs => _prefs.getStringList('vibe_prefs') ?? [];

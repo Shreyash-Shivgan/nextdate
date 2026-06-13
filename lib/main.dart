@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import 'theme/app_theme.dart';
 import 'models/date_entry.dart';
 import 'models/spot.dart';
@@ -18,15 +18,17 @@ void main() async {
   
   // Initialize Firebase
   await Firebase.initializeApp();
-  
-  // Initialize Hive
-  await Hive.initFlutter();
-  Hive.registerAdapter(DateEntryAdapter());
-  await Hive.openBox<DateEntry>('date_history');
+
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: 'YOUR_SUPABASE_URL',
+    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+  );
   
   // Initialize Preferences
   final prefs = PreferencesService();
   await prefs.init();
+
 
   // Load spots
   final repo = SpotsRepository();

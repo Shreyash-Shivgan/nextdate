@@ -1,14 +1,18 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:hive/hive.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/spot.dart';
 import '../../models/date_entry.dart';
 import '../../data/spots_repository.dart';
 import '../../services/preferences_service.dart';
+import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/share_card_widget.dart';
+
 
 class SpotDetailScreen extends StatefulWidget {
   final Spot spot;
@@ -27,12 +31,16 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
   final TextEditingController _billController = TextEditingController();
   double _perPersonAmount = 0.0;
 
+  List<CommunityReview> _mergedReviews = [];
+  bool _isLoadingReviews = true;
+
   @override
   void initState() {
     super.initState();
     _prefs.init();
     _billController.text = widget.spot.avgSpend.toString();
     _calculateSplitBill(widget.spot.avgSpend.toDouble());
+    _loadReviews();
   }
 
   @override
@@ -82,18 +90,42 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
     }
   }
 
+  Future<void> _loadReviews() async {
+    if (mounted) {
+      setState(() {
+        _isLoadingReviews = true;
+      });
+    }
+    try {
+      final dbReviews = await SupabaseService().fetchReviews(widget.spot.id);
+      final mappedReviews = dbReviews.map((r) => CommunityReview(
+        coupleName: r.coupleLabel,
+        review: r.reviewText,
+        vibeRating: r.vibeRating,
+        visitedOn: DateFormat('yyyy-MM-dd').format(r.visitedOn),
+        photoUrl: r.photoUrl,
+      )).toList();
+
+      if (mounted) {
+        setState(() {
+          _mergedReviews = [...mappedReviews, ...widget.spot.communityReviews];
+          _isLoadingReviews = false;
+        });
+      }
+    } catch (e) {
+      print("Error loading reviews from Supabase: $e");
+      if (mounted) {
+        setState(() {
+          _mergedReviews = widget.spot.communityReviews;
+          _isLoadingReviews = false;
+        });
+      }
+    }
+  }
+
   Future<void> _saveToHistory() async {
     try {
-      final box = Hive.box<DateEntry>('date_history');
-      final entry = DateEntry(
-        spotId: widget.spot.id,
-        spotName: widget.spot.name,
-        imageUrl: widget.spot.imageUrl,
-        visitedOn: DateTime.now(),
-        rating: 5,
-        note: "Logged from spot detail page.",
-      );
-      await box.add(entry);
+      await SupabaseService().saveSpot(widget.spot, rating: 5, note: "Logged from spot detail page.");
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -122,11 +154,23 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         final p1 = _prefs.partner1Name.isNotEmpty ? _prefs.partner1Name : "Partner 1";
-        final p2 = _prefs.partner2Name.isNotEmpty ? _prefs.partner2Name : "Partner 2";
         return ShareCardWidget(
           spot: widget.spot,
           partner1: p1,
-          partner2: p2,
+        );
+      },
+    );
+  }
+
+  void _openWriteReviewModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return _WriteReviewBottomSheet(
+          spotId: widget.spot.id,
+          onSubmitted: _loadReviews,
         );
       },
     );
@@ -595,62 +639,102 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "From couples who've been here",
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "From couples who've been here",
+                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      TextButton.icon(
+                        icon: const Icon(Icons.rate_review_outlined, size: 18, color: AppTheme.coralAccent),
+                        label: const Text("Write Review", style: TextStyle(color: AppTheme.coralAccent)),
+                        onPressed: _openWriteReviewModal,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
-                  ...widget.spot.communityReviews.map((review) {
-                    return Card(
-                      elevation: 1,
-                      margin: const EdgeInsets.symmetric(vertical: 6),
-                      color: isDark ? const Color(0xff162536) : Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  if (_isLoadingReviews)
+                    const Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  review.coupleName,
-                                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.coralAccent.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(color: AppTheme.coralAccent),
+                      ),
+                    )
+                  else
+                    ..._mergedReviews.map((review) {
+                      return Card(
+                        elevation: 1,
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        color: isDark ? const Color(0xff162536) : Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    review.coupleName,
+                                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                                   ),
-                                  child: Text(
-                                    review.vibeRating,
-                                    style: const TextStyle(fontSize: 10, color: AppTheme.coralAccent, fontWeight: FontWeight.bold),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.coralAccent.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      review.vibeRating,
+                                      style: const TextStyle(fontSize: 10, color: AppTheme.coralAccent, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                "\"${review.review}\"",
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                              if (review.photoUrl != null && review.photoUrl!.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: CachedNetworkImage(
+                                    imageUrl: review.photoUrl!,
+                                    height: 140,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(
+                                      height: 140,
+                                      color: AppTheme.softGrey.withOpacity(0.1),
+                                      child: const Center(
+                                        child: CircularProgressIndicator(color: AppTheme.coralAccent),
+                                      ),
+                                    ),
+                                    errorWidget: (context, url, error) => const SizedBox.shrink(),
                                   ),
                                 ),
                               ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "\"${review.review}\"",
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontStyle: FontStyle.italic,
+                              const SizedBox(height: 6),
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Text(
+                                  review.visitedOn,
+                                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: AppTheme.softGrey),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Text(
-                                review.visitedOn,
-                                style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, color: AppTheme.softGrey),
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
                 ],
               ),
             ),
@@ -737,3 +821,242 @@ class _SpotDetailScreenState extends State<SpotDetailScreen> {
     );
   }
 }
+
+class _WriteReviewBottomSheet extends StatefulWidget {
+  final String spotId;
+  final VoidCallback onSubmitted;
+
+  const _WriteReviewBottomSheet({
+    Key? key,
+    required this.spotId,
+    required this.onSubmitted,
+  }) : super(key: key);
+
+  @override
+  State<_WriteReviewBottomSheet> createState() => _WriteReviewBottomSheetState();
+}
+
+class _WriteReviewBottomSheetState extends State<_WriteReviewBottomSheet> {
+  final _textController = TextEditingController();
+  final _picker = ImagePicker();
+  File? _selectedImage;
+  String _selectedVibe = 'Romantic';
+  bool _isSubmitting = false;
+
+  final List<String> _vibes = ['Cozy', 'Foodie', 'Adventurous', 'Cultural', 'Romantic'];
+
+  Future<void> _pickImage() async {
+    try {
+      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+      if (picked != null) {
+        setState(() {
+          _selectedImage = File(picked.path);
+        });
+      }
+    } catch (e) {
+      print("Image picking error: $e");
+    }
+  }
+
+  Future<void> _submitReview() async {
+    final text = _textController.text.trim();
+    if (text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please write a review text")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      String? photoUrl;
+      if (_selectedImage != null) {
+        photoUrl = await SupabaseService().uploadReviewPhoto(_selectedImage!);
+      }
+
+      await SupabaseService().submitReview(
+        spotId: widget.spotId,
+        reviewText: text,
+        vibeRating: _selectedVibe,
+        photoUrl: photoUrl,
+      );
+
+      widget.onSubmitted();
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Review submitted successfully! 💞"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to submit review: $e"),
+            backgroundColor: AppTheme.coralAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.softGrey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "Write a Review",
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "Select Date Vibe",
+              style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.softGrey),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 40,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: _vibes.map((v) {
+                  final isSelected = _selectedVibe == v;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: ChoiceChip(
+                      selected: isSelected,
+                      label: Text(v),
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() {
+                            _selectedVibe = v;
+                          });
+                        }
+                      },
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _textController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                labelText: "How was your date?",
+                hintText: "Share what you ordered, the vibe, or any date tips...",
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _pickImage,
+                  icon: const Icon(Icons.add_a_photo_rounded),
+                  label: const Text("Add Photo"),
+                ),
+                const SizedBox(width: 16),
+                if (_selectedImage != null)
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          _selectedImage!,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedImage = null;
+                            });
+                          },
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.close, size: 16, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _isSubmitting ? null : _submitReview,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.coralAccent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : Text(
+                        "Submit Review",
+                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

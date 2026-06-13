@@ -8,7 +8,6 @@ import '../../services/spots_filter_service.dart';
 import '../../services/weather_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/mood_selector.dart';
 import '../../widgets/spot_card.dart';
 import '../../widgets/tonight_pick_banner.dart';
 import '../../widgets/weather_banner.dart';
@@ -31,11 +30,27 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   bool _showWeatherBanner = false;
   bool _isLoadingWeather = true;
 
-  String _selectedMood = 'Low-key';
   String? _selectedCategory;
 
   Spot? _tonightPick;
   List<Spot> _filteredSpots = [];
+
+  bool _isLoadingSpots = false;
+  String? _selectedNeighborhood;
+
+  final List<Map<String, dynamic>> _mumbaiNeighborhoods = [
+    {"name": "Bandra", "lat": 19.0596, "lng": 72.8295},
+    {"name": "Colaba", "lat": 18.9067, "lng": 72.8147},
+    {"name": "Juhu", "lat": 19.1026, "lng": 72.8242},
+    {"name": "Fort", "lat": 18.9345, "lng": 72.8371},
+    {"name": "Powai", "lat": 19.1176, "lng": 72.9060},
+    {"name": "Worli", "lat": 19.0178, "lng": 72.8173},
+    {"name": "Versova", "lat": 19.1351, "lng": 72.8146},
+    {"name": "Andheri", "lat": 19.1197, "lng": 72.8468},
+    {"name": "Marine Lines", "lat": 18.9447, "lng": 72.8244},
+    {"name": "Dadar", "lat": 19.0178, "lng": 72.8478},
+  ];
+
 
   final List<Map<String, String>> _categories = [
     {"name": "Café", "icon": "☕"},
@@ -55,10 +70,23 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }
 
   Future<void> _initializeData() async {
+    if (mounted) {
+      setState(() {
+        _isLoadingSpots = true;
+      });
+    }
     await _repository.loadSpots();
     await _prefs.init();
     await _checkWeather();
-    _refreshRecommendations();
+    try {
+      await _repository.fetchAndMergeLiveSpots();
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _isLoadingSpots = false;
+      });
+      _refreshRecommendations();
+    }
   }
 
   Future<void> _checkWeather() async {
@@ -83,7 +111,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       _tonightPick = _filterService.getTonightPick();
       _filteredSpots = _filterService.getFilteredSpots(
         weather: _weather,
-        selectedMood: _selectedMood,
         category: _selectedCategory,
       );
     });
@@ -93,44 +120,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     await _prefs.clearDislikedSpots();
     setState(() {
       _selectedCategory = null;
-      _selectedMood = 'Low-key';
+      _selectedNeighborhood = null;
       _showWeatherBanner = (_weather == WeatherStatus.rainy);
+      _isLoadingSpots = true;
     });
-    _refreshRecommendations();
-  }
-
-  // Spark Me Roulette Trigger
-  void _triggerSparkMe() {
-    final candidates = _filterService.getSparkMeCandidates(
-      weather: _weather,
-      selectedMood: _selectedMood,
-    );
-
-    if (candidates.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (context) => Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: EmptyState(
-            title: "No Matching Spots",
-            message: "Hmm, nothing matches right now — want to widen the search?",
-            buttonText: "Reset Filters",
-            onAction: () {
-              Navigator.pop(context);
-              _resetFilters();
-            },
-          ),
-        ),
-      );
-      return;
+    try {
+      await _repository.fetchAndMergeLiveSpots();
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _isLoadingSpots = false;
+      });
+      _refreshRecommendations();
     }
-
-    // Show Roulette Dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => _RouletteDialog(candidates: candidates),
-    );
   }
 
   @override
@@ -166,61 +168,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 TonightPickBanner(spot: _tonightPick!),
               ],
 
-              // Mood Selector Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  "Choose Your Vibe",
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              MoodSelector(
-                selectedMood: _selectedMood,
-                onMoodChanged: (mood) {
-                  setState(() {
-                    _selectedMood = mood;
-                  });
-                  _refreshRecommendations();
-                },
-              ),
 
-              const SizedBox(height: 16),
-
-              // Spark Me Button
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: _triggerSparkMe,
-                      icon: const Text("⚡", style: TextStyle(fontSize: 18)),
-                      label: Text(
-                        "Spark Me!",
-                        style: GoogleFonts.outfit(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.coralAccent,
-                        foregroundColor: isDark ? AppTheme.primaryNavy : Colors.white,
-                        elevation: 8,
-                        shadowColor: AppTheme.coralAccent.withOpacity(0.4),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
 
               // Category Pick Grid
               Padding(
@@ -306,6 +254,74 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
               const SizedBox(height: 20),
 
+              // Explore Neighborhoods Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  "Explore Neighborhoods",
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 48,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  itemCount: _mumbaiNeighborhoods.length,
+                  itemBuilder: (context, index) {
+                    final neighborhood = _mumbaiNeighborhoods[index];
+                    final name = neighborhood['name'] as String;
+                    final isSelected = _selectedNeighborhood == name;
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: FilterChip(
+                        selected: isSelected,
+                        showCheckmark: false,
+                        label: Text(
+                          name,
+                          style: GoogleFonts.outfit(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? (isDark ? AppTheme.primaryNavy : Colors.white)
+                                : (isDark ? Colors.white70 : AppTheme.primaryNavy),
+                          ),
+                        ),
+                        selectedColor: AppTheme.coralAccent,
+                        backgroundColor: isDark ? const Color(0xff162536) : Colors.white,
+                        onSelected: (selected) async {
+                          setState(() {
+                            _selectedNeighborhood = selected ? name : null;
+                            _isLoadingSpots = true;
+                          });
+                          
+                          if (_selectedNeighborhood != null) {
+                            final lat = neighborhood['lat'] as double;
+                            final lng = neighborhood['lng'] as double;
+                            await _repository.fetchAndMergeLiveSpots(lat: lat, lng: lng);
+                          } else {
+                            await _repository.fetchAndMergeLiveSpots(); // Default center
+                          }
+
+                          if (mounted) {
+                            setState(() {
+                              _isLoadingSpots = false;
+                              _refreshRecommendations();
+                            });
+                          }
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
               // Filtered spots list title
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -335,7 +351,14 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               ),
 
               // Recommendations List
-              if (_filteredSpots.isEmpty)
+              if (_isLoadingSpots)
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: 3,
+                  itemBuilder: (context, index) => const _SpotShimmerCard(),
+                )
+              else if (_filteredSpots.isEmpty)
                 EmptyState(
                   message: "No spots match your current filters. Tap below to reset all settings.",
                   buttonText: "Reset Filters",
@@ -352,6 +375,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   },
                 ),
               const SizedBox(height: 30),
+
             ],
           ),
         ),
@@ -360,191 +384,115 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }
 }
 
-// Spark Me Roulette dialog class
-class _RouletteDialog extends StatefulWidget {
-  final List<Spot> candidates;
-
-  const _RouletteDialog({Key? key, required this.candidates}) : super(key: key);
+class _SpotShimmerCard extends StatefulWidget {
+  const _SpotShimmerCard({Key? key}) : super(key: key);
 
   @override
-  State<_RouletteDialog> createState() => _RouletteDialogState();
+  State<_SpotShimmerCard> createState() => _SpotShimmerCardState();
 }
 
-class _RouletteDialogState extends State<_RouletteDialog> with SingleTickerProviderStateMixin {
-  late AnimationController _scaleController;
-  late Animation<double> _scaleAnimation;
-
-  int _currentIndex = 0;
-  Timer? _timer;
-  int _timerTick = 0;
-  int _maxTicks = 18; // Cycle times
-  int _durationMs = 100; // Starting fast speed
+class _SpotShimmerCardState extends State<_SpotShimmerCard> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _scaleController = AnimationController(
+    _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _scaleAnimation = CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.elasticOut,
-    );
-    
-    _scaleController.value = 1.0;
-    _startRoulette();
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _scaleController.dispose();
+    _controller.dispose();
     super.dispose();
-  }
-
-  void _startRoulette() {
-    _timerTick = 0;
-    _runTick();
-  }
-
-  void _runTick() {
-    _timer?.cancel();
-    if (_timerTick >= _maxTicks) {
-      // Land on final spot
-      final finalIndex = _currentIndex;
-      
-      // Animate win scale pop
-      _scaleController.forward(from: 0.0);
-      
-      Future.delayed(const Duration(milliseconds: 1800), () {
-        if (mounted) {
-          Navigator.pop(context); // Close dialog
-          // Navigate to details with slide up
-          Navigator.push(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-                  SpotDetailScreen(spot: widget.candidates[finalIndex]),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                const begin = Offset(0.0, 1.0);
-                const end = Offset.zero;
-                const curve = Curves.easeOutCubic;
-                var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                return SlideTransition(
-                  position: animation.drive(tween),
-                  child: child,
-                );
-              },
-            ),
-          );
-        }
-      });
-      return;
-    }
-
-    _timerTick++;
-    setState(() {
-      _currentIndex = (_currentIndex + 1) % widget.candidates.length;
-    });
-
-    // Deceleration algorithm: slow down as we get closer to the end
-    if (_timerTick > 10) {
-      _durationMs = (100 * (1.0 + (_timerTick - 10) * 0.45)).toInt();
-    }
-
-    _timer = Timer(Duration(milliseconds: _durationMs), _runTick);
   }
 
   @override
   Widget build(BuildContext context) {
-    final spot = widget.candidates[_currentIndex];
-    final isLanded = _timerTick >= _maxTicks;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
 
-    return Center(
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardTheme.color,
-              borderRadius: BorderRadius.circular(20),
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Opacity(
+          opacity: 0.3 + (_controller.value * 0.4),
+          child: Card(
+            elevation: 8,
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  isLanded ? "✨ YOUR SPARK MATCH ✨" : "🤖 SELECTING DATE SPOT...",
-                  style: GoogleFonts.outfit(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isLanded ? AppTheme.coralAccent : AppTheme.softGrey,
-                    letterSpacing: 1.0,
+                Container(
+                  height: 180,
+                  decoration: BoxDecoration(
+                    color: baseColor,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                   ),
                 ),
-                const SizedBox(height: 16),
-                
-                // Spot Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    spot.imageUrl,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Name
-                Text(
-                  spot.name,
-                  style: GoogleFonts.outfit(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-
-                // Neighborhood
-                Text(
-                  spot.neighborhood,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: AppTheme.coralAccent,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Flicking indicator
-                if (!isLanded)
-                  const SizedBox(
-                    width: 40,
-                    child: LinearProgressIndicator(
-                      color: AppTheme.coralAccent,
-                      backgroundColor: Colors.transparent,
-                    ),
-                  )
-                else
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("🎉 ", style: TextStyle(fontSize: 20)),
-                      Text(
-                        "Opening Spot Details...",
-                        style: TextStyle(fontSize: 13, color: AppTheme.softGrey),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            height: 18,
+                            width: 150,
+                            color: baseColor,
+                          ),
+                          Container(
+                            height: 18,
+                            width: 50,
+                            color: baseColor,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        height: 14,
+                        width: 100,
+                        color: baseColor,
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Container(
+                            height: 20,
+                            width: 60,
+                            decoration: BoxDecoration(
+                              color: baseColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            height: 20,
+                            width: 60,
+                            decoration: BoxDecoration(
+                              color: baseColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
+                ),
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
+

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/preferences_service.dart';
+import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
 import '../home/home_screen.dart';
 
@@ -19,7 +21,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   // Page 2 Controller
   final TextEditingController _partner1Controller = TextEditingController();
-  final TextEditingController _partner2Controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   // Page 3 State
@@ -28,10 +29,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _selectedBudget = 2; // Default to ₹₹
 
   @override
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null && user.displayName != null && user.displayName!.isNotEmpty) {
+      _partner1Controller.text = user.displayName!;
+    }
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
     _partner1Controller.dispose();
-    _partner2Controller.dispose();
     super.dispose();
   }
 
@@ -67,10 +76,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     // Save preferences
     await _prefs.setPartner1Name(_partner1Controller.text.trim());
-    await _prefs.setPartner2Name(_partner2Controller.text.trim());
     await _prefs.setVibePrefs(_selectedVibes);
     await _prefs.setBudgetPref(_selectedBudget);
     await _prefs.setOnboardingComplete(true);
+
+    try {
+      final supabaseService = SupabaseService();
+      await supabaseService.upsertProfile(
+        name: _partner1Controller.text.trim(),
+        vibes: _selectedVibes,
+        budget: _selectedBudget,
+      );
+    } catch (e) {
+      print("Failed to sync profile to Supabase: $e");
+    }
 
     if (mounted) {
       Navigator.pushReplacement(
@@ -238,34 +257,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 24),
-            // Partner 2 Name Field
-            Text(
-              "Partner 2 Name",
-              style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.coralAccent),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _partner2Controller,
-              decoration: InputDecoration(
-                hintText: "Enter Partner's Name",
-                filled: true,
-                fillColor: isDark ? const Color(0xff162536) : Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppTheme.softGrey.withOpacity(0.5)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppTheme.coralAccent, width: 2),
-                ),
-              ),
-              validator: (val) {
-                if (val == null || val.trim().isEmpty) return "Name cannot be empty";
-                return null;
-              },
-            ),
-            const SizedBox(height: 32),
+
             // City Field (Auto-locked to Mumbai)
             Text(
               "Date Discovery City",
