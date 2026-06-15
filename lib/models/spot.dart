@@ -17,6 +17,8 @@ class Spot {
   final String? comboSpotId;
   final List<CommunityReview> communityReviews;
   final double? rating;
+  double? distance;
+  double? dateScore;
 
   Spot({
     required this.id,
@@ -37,14 +39,27 @@ class Spot {
     this.comboSpotId,
     required this.communityReviews,
     this.rating,
+    this.distance,
+    this.dateScore,
   });
+
+  static String normalizeCategory(String cat) {
+    final lower = cat.toLowerCase().replaceAll('é', 'e').trim();
+    if (lower.contains('restaurant')) return 'Restaurant';
+    if (lower.contains('cafe')) return 'Cafe';
+    if (lower.contains('bar') || lower.contains('pub') || lower.contains('lounge')) return 'Bar';
+    if (lower.contains('park') || lower.contains('garden')) return 'Park';
+    if (lower.contains('attraction') || lower.contains('tourism')) return 'Attraction';
+    if (lower.contains('museum')) return 'Museum';
+    return 'Activity';
+  }
 
   factory Spot.fromJson(Map<String, dynamic> json) {
     return Spot(
       id: json['id'] as String,
       name: json['name'] as String,
       neighborhood: json['neighborhood'] as String,
-      category: json['category'] as String,
+      category: normalizeCategory(json['category'] as String),
       vibe: List<String>.from(json['vibe'] as List),
       budget: json['budget'] as int,
       avgSpend: json['avgSpend'] as int,
@@ -63,6 +78,8 @@ class Spot {
               .toList()
           : [],
       rating: json['rating'] != null ? (json['rating'] as num).toDouble() : null,
+      distance: json['distance'] != null ? (json['distance'] as num).toDouble() : null,
+      dateScore: json['dateScore'] != null ? (json['dateScore'] as num).toDouble() : null,
     );
   }
 
@@ -86,7 +103,55 @@ class Spot {
       'comboSpotId': comboSpotId,
       'communityReviews': communityReviews.map((r) => r.toJson()).toList(),
       'rating': rating,
+      'distance': distance,
+      'dateScore': dateScore,
     };
+  }
+
+  Spot copyWith({
+    String? id,
+    String? name,
+    String? neighborhood,
+    String? category,
+    List<String>? vibe,
+    int? budget,
+    int? avgSpend,
+    bool? indoor,
+    String? imageUrl,
+    String? aiBlurb,
+    List<String>? activities,
+    String? bestTime,
+    List<String>? checklist,
+    double? lat,
+    double? lng,
+    String? comboSpotId,
+    List<CommunityReview>? communityReviews,
+    double? rating,
+    double? distance,
+    double? dateScore,
+  }) {
+    return Spot(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      neighborhood: neighborhood ?? this.neighborhood,
+      category: category ?? this.category,
+      vibe: vibe ?? this.vibe,
+      budget: budget ?? this.budget,
+      avgSpend: avgSpend ?? this.avgSpend,
+      indoor: indoor ?? this.indoor,
+      imageUrl: imageUrl ?? this.imageUrl,
+      aiBlurb: aiBlurb ?? this.aiBlurb,
+      activities: activities ?? this.activities,
+      bestTime: bestTime ?? this.bestTime,
+      checklist: checklist ?? this.checklist,
+      lat: lat ?? this.lat,
+      lng: lng ?? this.lng,
+      comboSpotId: comboSpotId ?? this.comboSpotId,
+      communityReviews: communityReviews ?? this.communityReviews,
+      rating: rating ?? this.rating,
+      distance: distance ?? this.distance,
+      dateScore: dateScore ?? this.dateScore,
+    );
   }
 }
 

@@ -1,17 +1,22 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../data/spots_repository.dart';
 import '../../models/spot.dart';
 import '../../services/preferences_service.dart';
 import '../../services/spots_filter_service.dart';
 import '../../services/weather_service.dart';
+import '../../services/location_service.dart';
+import '../../services/notification_service.dart';
+import '../../services/geoapify_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/spot_card.dart';
+import '../../widgets/horizontal_spot_card.dart';
 import '../../widgets/tonight_pick_banner.dart';
 import '../../widgets/weather_banner.dart';
-import '../spot_detail/spot_detail_screen.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({Key? key}) : super(key: key);
@@ -25,43 +30,65 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   final PreferencesService _prefs = PreferencesService();
   final WeatherService _weatherService = WeatherService();
   final SpotsFilterService _filterService = SpotsFilterService();
+  final LocationService _locationService = LocationService();
+  final NotificationService _notificationService = NotificationService();
+  final GeoapifyService _geoapifyService = GeoapifyService();
 
   WeatherStatus _weather = WeatherStatus.clear;
   bool _showWeatherBanner = false;
-  bool _isLoadingWeather = true;
 
   String? _selectedCategory;
-
   Spot? _tonightPick;
-  List<Spot> _filteredSpots = [];
-
+  List<Spot> _allScoredSpots = [];
   bool _isLoadingSpots = false;
-  String? _selectedNeighborhood;
+  bool _loadingTimedOut = false;
 
-  final List<Map<String, dynamic>> _mumbaiNeighborhoods = [
-    {"name": "Bandra", "lat": 19.0596, "lng": 72.8295},
-    {"name": "Colaba", "lat": 18.9067, "lng": 72.8147},
-    {"name": "Juhu", "lat": 19.1026, "lng": 72.8242},
-    {"name": "Fort", "lat": 18.9345, "lng": 72.8371},
-    {"name": "Powai", "lat": 19.1176, "lng": 72.9060},
-    {"name": "Worli", "lat": 19.0178, "lng": 72.8173},
-    {"name": "Versova", "lat": 19.1351, "lng": 72.8146},
-    {"name": "Andheri", "lat": 19.1197, "lng": 72.8468},
-    {"name": "Marine Lines", "lat": 18.9447, "lng": 72.8244},
-    {"name": "Dadar", "lat": 19.0178, "lng": 72.8478},
+  // Real-time GPS State
+  Position? _currentPosition;
+  Position? _lastFetchPosition;
+  StreamSubscription<Position>? _positionSubscription;
+
+  int _selectedRadiusMeters = 5000;
+  final List<Map<String, dynamic>> _radiusOptions = [
+    {"label": "1 km", "value": 1000},
+    {"label": "5 km", "value": 5000},
+    {"label": "10 km", "value": 10000},
+    {"label": "25 km", "value": 25000},
   ];
 
-
-  final List<Map<String, String>> _categories = [
-    {"name": "Café", "icon": "☕"},
-    {"name": "Park", "icon": "🌳"},
-    {"name": "Beach", "icon": "🏖️"},
-    {"name": "Museum", "icon": "🏛️"},
-    {"name": "Restaurant", "icon": "🍕"},
-    {"name": "Bar", "icon": "🍹"},
-    {"name": "Scenic", "icon": "🌅"},
-    {"name": "Activity", "icon": "🎯"},
+  // Lightweight category chips (Zepto-style)
+  final List<Map<String, String>> _categoryChips = [
+    {"id": "", "name": "All"},
+    {"id": "Restaurant", "name": "Food"},
+    {"id": "Cafe", "name": "Coffee"},
+    {"id": "Bar", "name": "Nightlife"},
+    {"id": "Park", "name": "Outdoor"},
+    {"id": "Museum", "name": "Culture"},
+    {"id": "Attraction", "name": "Explore"},
   ];
+
+  // Discover section rails
+  final List<Map<String, String>> _sectionRails = [
+    {"title": "🔥 Trending Tonight", "filter": ""},
+    {"title": "📍 Near You", "filter": "near"},
+    {"title": "✨ Hidden Gems", "filter": "curated"},
+    {"title": "💸 Under ₹500", "filter": "budget"},
+    {"title": "☕ Perfect First Dates", "filter": "Cafe"},
+    {"title": "🌙 Date Night Energy", "filter": "Restaurant"},
+    {"title": "🍸 Night Out", "filter": "Bar"},
+    {"title": "🌳 Touch Grass", "filter": "Park"},
+    {"title": "🏛️ Culture Mode", "filter": "Museum"},
+    {"title": "🏆 Highest Rated", "filter": "rated"},
+    {"title": "🎲 Surprise Picks", "filter": "random"},
+  ];
+
+  final List<String> _loadingMessages = [
+    "Finding the vibe...",
+    "Hunting for hidden gems...",
+    "Checking where everyone's going tonight...",
+    "Curating your next date...",
+  ];
+  String _currentLoadingMessage = "Finding the vibe...";
 
   @override
   void initState() {
@@ -69,39 +96,165 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     _initializeData();
   }
 
+  @override
+  void dispose() {
+    _positionSubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> _initializeData() async {
     if (mounted) {
       setState(() {
         _isLoadingSpots = true;
+        _loadingTimedOut = false;
+        _currentLoadingMessage = _loadingMessages[Random().nextInt(_loadingMessages.length)];
       });
     }
-    await _repository.loadSpots();
-    await _prefs.init();
-    await _checkWeather();
+
+    final safetyTimer = Timer(const Duration(seconds: 10), () {
+      if (mounted && _isLoadingSpots) {
+        print("[DiscoverScreen] Safety timeout triggered after 10s.");
+        setState(() {
+          _isLoadingSpots = false;
+          _loadingTimedOut = true;
+        });
+        _refreshRecommendations();
+      }
+    });
+
     try {
-      await _repository.fetchAndMergeLiveSpots();
-    } catch (_) {}
-    if (mounted) {
-      setState(() {
-        _isLoadingSpots = false;
-      });
+      await _repository.loadSpots().timeout(const Duration(seconds: 5));
+      await _prefs.init().timeout(const Duration(seconds: 5));
+      await _notificationService.init().timeout(const Duration(seconds: 5));
+      await _checkWeather().timeout(const Duration(seconds: 5));
+
+      final locationStatus = await Permission.location.request()
+          .timeout(const Duration(seconds: 5), onTimeout: () => PermissionStatus.denied);
+      await Permission.notification.request()
+          .timeout(const Duration(seconds: 5), onTimeout: () => PermissionStatus.denied);
+
+      if (locationStatus.isGranted) {
+        try {
+          final pos = await _locationService.getCurrentPosition()
+              .timeout(const Duration(seconds: 5));
+          _currentPosition = pos;
+          _lastFetchPosition = pos;
+          print("[DiscoverScreen] GPS: ${pos.latitude},${pos.longitude}");
+
+          // Fetch initial Geoapify spots
+          await _fetchSpots(pos.latitude, pos.longitude)
+              .timeout(const Duration(seconds: 8));
+
+          // Start location stream for silent 100m re-fetches
+          _setupLocationStream();
+        } catch (e) {
+          print("[DiscoverScreen] Location setup error: $e");
+          if (mounted) {
+            setState(() => _isLoadingSpots = false);
+          }
+          _refreshRecommendations();
+        }
+      } else {
+        if (mounted) {
+          setState(() => _isLoadingSpots = false);
+        }
+        _refreshRecommendations();
+      }
+    } catch (e) {
+      print("[DiscoverScreen] Initialize error: $e");
+      if (mounted) {
+        setState(() => _isLoadingSpots = false);
+      }
       _refreshRecommendations();
+    } finally {
+      safetyTimer.cancel();
+    }
+  }
+
+  void _setupLocationStream() {
+    _positionSubscription?.cancel();
+    final stream = _locationService.getPositionStream();
+    _notificationService.startProximityMonitoring(stream);
+
+    _positionSubscription = stream.listen((position) async {
+      if (!mounted) return;
+      setState(() => _currentPosition = position);
+
+      if (_lastFetchPosition == null) {
+        _lastFetchPosition = position;
+        await _fetchSpots(position.latitude, position.longitude, silent: true);
+        return;
+      }
+
+      final distance = Geolocator.distanceBetween(
+        _lastFetchPosition!.latitude,
+        _lastFetchPosition!.longitude,
+        position.latitude,
+        position.longitude,
+      );
+
+      if (distance >= 100) {
+        _lastFetchPosition = position;
+        await _fetchSpots(position.latitude, position.longitude, silent: true);
+      }
+    });
+  }
+
+  Future<void> _fetchSpots(double lat, double lng, {bool silent = false}) async {
+    if (!silent && mounted) {
+      setState(() {
+        _isLoadingSpots = true;
+        _loadingTimedOut = false;
+        _currentLoadingMessage = _loadingMessages[Random().nextInt(_loadingMessages.length)];
+      });
+    }
+
+    Timer? safetyTimer;
+    if (!silent) {
+      safetyTimer = Timer(const Duration(seconds: 10), () {
+        if (mounted && _isLoadingSpots) {
+          print("[DiscoverScreen] Fetch timeout after 10s.");
+          setState(() {
+            _isLoadingSpots = false;
+            _loadingTimedOut = true;
+          });
+          _refreshRecommendations();
+        }
+      });
+    }
+
+    try {
+      final liveSpots = await _geoapifyService.fetchNearbySpots(
+        lat: lat,
+        lng: lng,
+        radius: _selectedRadiusMeters,
+      ).timeout(const Duration(seconds: 10));
+
+      _repository.setSpots(liveSpots);
+
+      if (mounted) {
+        setState(() => _loadingTimedOut = false);
+      }
+    } catch (e) {
+      print("[DiscoverScreen] Fetch error: $e");
+      if (_repository.spots.isEmpty) {
+        await _repository.loadSpots();
+      }
+    } finally {
+      safetyTimer?.cancel();
+      if (mounted) {
+        setState(() => _isLoadingSpots = false);
+        _refreshRecommendations();
+      }
     }
   }
 
   Future<void> _checkWeather() async {
-    if (!mounted) return;
-    setState(() {
-      _isLoadingWeather = true;
-    });
-
     final status = await _weatherService.fetchWeather();
-    
     if (mounted) {
       setState(() {
         _weather = status;
         _showWeatherBanner = (status == WeatherStatus.rainy);
-        _isLoadingWeather = false;
       });
     }
   }
@@ -109,9 +262,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   void _refreshRecommendations() {
     setState(() {
       _tonightPick = _filterService.getTonightPick();
-      _filteredSpots = _filterService.getFilteredSpots(
+
+      // Get all scored spots for section rails
+      _allScoredSpots = _filterService.getFilteredSpots(
         weather: _weather,
         category: _selectedCategory,
+        userPosition: _currentPosition,
+        radiusMeters: _selectedRadiusMeters,
       );
     });
   }
@@ -120,19 +277,341 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     await _prefs.clearDislikedSpots();
     setState(() {
       _selectedCategory = null;
-      _selectedNeighborhood = null;
       _showWeatherBanner = (_weather == WeatherStatus.rainy);
       _isLoadingSpots = true;
+      _loadingTimedOut = false;
     });
-    try {
-      await _repository.fetchAndMergeLiveSpots();
-    } catch (_) {}
-    if (mounted) {
-      setState(() {
-        _isLoadingSpots = false;
-      });
+
+    if (_currentPosition != null) {
+      await _fetchSpots(_currentPosition!.latitude, _currentPosition!.longitude);
+    } else {
+      setState(() => _isLoadingSpots = false);
       _refreshRecommendations();
     }
+  }
+
+  // --- Get spots for a specific rail section ---
+  List<Spot> _getSpotsForSection(String filter) {
+    if (_allScoredSpots.isEmpty) return [];
+
+    switch (filter) {
+      case '': // Trending Tonight — top scored
+        return _allScoredSpots.take(10).toList();
+
+      case 'near': // Near You — sorted by distance
+        final sorted = List<Spot>.from(_allScoredSpots);
+        sorted.sort((a, b) => (a.distance ?? 99999).compareTo(b.distance ?? 99999));
+        return sorted.take(10).toList();
+
+      case 'curated': // Hidden Gems — curated spots from spots.json
+        final curated = _allScoredSpots.where(
+          (s) => _repository.curatedSpots.any((c) => c.id == s.id),
+        ).toList();
+        return curated.take(10).toList();
+
+      case 'budget': // Under ₹500
+        return _allScoredSpots.where((s) => s.avgSpend <= 500).take(10).toList();
+
+      case 'rated': // Highest Rated — sorted by dateScore
+        final sorted = List<Spot>.from(_allScoredSpots);
+        sorted.sort((a, b) => (b.dateScore ?? 0).compareTo(a.dateScore ?? 0));
+        return sorted.take(10).toList();
+
+      case 'random': // Surprise Picks — random selection
+        final shuffled = List<Spot>.from(_allScoredSpots);
+        shuffled.shuffle(Random());
+        return shuffled.take(8).toList();
+
+      default: // Category filter (e.g., "Cafe", "Restaurant")
+        return _allScoredSpots
+            .where((s) => s.category.toLowerCase() == filter.toLowerCase())
+            .take(10)
+            .toList();
+    }
+  }
+
+  // --- BUILD METHODS ---
+
+  Widget _buildGpsHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: _currentPosition != null ? Colors.green : Colors.amber,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _currentPosition != null ? "GPS locked in 📍" : "Exploring nearby vibes ✨",
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.softGrey,
+                ),
+              ),
+            ],
+          ),
+          if (_currentPosition != null)
+            Text(
+              "${_currentPosition!.latitude.toStringAsFixed(4)}, ${_currentPosition!.longitude.toStringAsFixed(4)}",
+              style: GoogleFonts.inter(fontSize: 10, color: AppTheme.softGrey),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRadiusSelector(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      child: Row(
+        children: [
+          Icon(Icons.tune, size: 14, color: isDark ? Colors.white54 : AppTheme.softGrey),
+          const SizedBox(width: 6),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: _radiusOptions.map((opt) {
+                  final label = opt['label'] as String;
+                  final val = opt['value'] as int;
+                  final isSel = _selectedRadiusMeters == val;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 6.0),
+                    child: ChoiceChip(
+                      label: Text(label),
+                      selected: isSel,
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() => _selectedRadiusMeters = val);
+                          if (_currentPosition != null) {
+                            _fetchSpots(_currentPosition!.latitude, _currentPosition!.longitude);
+                          }
+                        }
+                      },
+                      showCheckmark: false,
+                      labelStyle: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: isSel
+                            ? (isDark ? AppTheme.primaryNavy : Colors.white)
+                            : (isDark ? Colors.white70 : AppTheme.primaryNavy),
+                      ),
+                      selectedColor: AppTheme.coralAccent,
+                      backgroundColor: isDark ? const Color(0xff162536) : Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryChips(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return SizedBox(
+      height: 38,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        itemCount: _categoryChips.length,
+        itemBuilder: (context, index) {
+          final chip = _categoryChips[index];
+          final catId = chip['id']!;
+          final catName = chip['name']!;
+          final isSelected = catId.isEmpty
+              ? (_selectedCategory == null)
+              : (_selectedCategory == catId);
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 3.0),
+            child: ChoiceChip(
+              label: Text(catName),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() {
+                    _selectedCategory = catId.isEmpty ? null : catId;
+                  });
+                  _refreshRecommendations();
+                }
+              },
+              showCheckmark: false,
+              labelStyle: GoogleFonts.outfit(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white70 : AppTheme.primaryNavy),
+              ),
+              selectedColor: AppTheme.coralAccent,
+              backgroundColor: isDark ? const Color(0xff162536) : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(
+                  color: isSelected ? AppTheme.coralAccent : AppTheme.softGrey.withOpacity(0.2),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFallbackBanner(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Container(
+        padding: const EdgeInsets.all(12.0),
+        decoration: BoxDecoration(
+          color: AppTheme.coralAccent.withOpacity(isDark ? 0.15 : 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.coralAccent.withOpacity(0.3), width: 1),
+        ),
+        child: Row(
+          children: [
+            const Text("✨", style: TextStyle(fontSize: 18)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Curated Vibes Only 💎",
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.coralAccent,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    "No live places found nearby. Showing curated fallback spots near you.",
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: isDark ? Colors.white70 : AppTheme.primaryNavy.withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeoutRetryWidget(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        children: [
+          const Text("😭", style: TextStyle(fontSize: 48)),
+          const SizedBox(height: 12),
+          Text(
+            "Couldn't load nearby spots",
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : AppTheme.primaryNavy,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "Check your connection and try again.",
+            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.softGrey),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: () {
+              if (_currentPosition != null) {
+                _fetchSpots(_currentPosition!.latitude, _currentPosition!.longitude);
+              } else {
+                _initializeData();
+              }
+            },
+            icon: const Icon(Icons.refresh, size: 18),
+            label: const Text("Retry"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHorizontalRail(BuildContext context, String title, List<Spot> spots) {
+    if (spots.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.outfit(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                ),
+              ),
+              Text(
+                "${spots.length} spots",
+                style: GoogleFonts.inter(fontSize: 11, color: AppTheme.softGrey),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          height: 210,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: spots.length,
+            itemBuilder: (context, index) {
+              return HorizontalSpotCard(spot: spots[index]);
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
   }
 
   @override
@@ -142,10 +621,26 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text(
+          "For You ✨",
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: isDark ? Colors.white : AppTheme.primaryNavy,
+          ),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           await _checkWeather();
-          _refreshRecommendations();
+          if (_currentPosition != null) {
+            await _fetchSpots(_currentPosition!.latitude, _currentPosition!.longitude);
+          } else {
+            _refreshRecommendations();
+          }
         },
         color: AppTheme.coralAccent,
         child: SingleChildScrollView(
@@ -156,229 +651,97 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               // Weather Banner
               if (_showWeatherBanner)
                 WeatherBanner(
-                  onDismiss: () {
-                    setState(() {
-                      _showWeatherBanner = false;
-                    });
-                  },
+                  onDismiss: () => setState(() => _showWeatherBanner = false),
                 ),
 
-              // Tonight's Pick Section
-              if (_selectedCategory == null && _tonightPick != null) ...[
-                TonightPickBanner(spot: _tonightPick!),
-              ],
+              // GPS + Radius controls
+              _buildGpsHeader(context),
+              _buildRadiusSelector(context),
 
+              // Fallback banner
+              if (!_isLoadingSpots && _geoapifyService.isLastFetchFallback)
+                _buildFallbackBanner(context),
 
+              const SizedBox(height: 8),
 
-              // Category Pick Grid
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  "Pick My Vibe",
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              // Category chips (single row, lightweight)
+              _buildCategoryChips(context),
+
               const SizedBox(height: 12),
-              
-              // Categories Grid
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _categories.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
-                    childAspectRatio: 1.0,
-                  ),
-                  itemBuilder: (context, index) {
-                    final cat = _categories[index];
-                    final name = cat['name']!;
-                    final icon = cat['icon']!;
-                    final isSelected = _selectedCategory == name;
 
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedCategory = isSelected ? null : name;
-                        });
-                        _refreshRecommendations();
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppTheme.coralAccent
-                              : (isDark ? const Color(0xff162536) : Colors.white),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isSelected ? AppTheme.coralAccent : AppTheme.softGrey.withOpacity(0.2),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.primaryNavy.withOpacity(0.04),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              icon,
-                              style: const TextStyle(fontSize: 24),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              name,
-                              style: GoogleFonts.outfit(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: isSelected
-                                    ? (isDark ? AppTheme.primaryNavy : Colors.white)
-                                    : (isDark ? Colors.white70 : AppTheme.primaryNavy),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Explore Neighborhoods Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  "Explore Neighborhoods",
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 48,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  itemCount: _mumbaiNeighborhoods.length,
-                  itemBuilder: (context, index) {
-                    final neighborhood = _mumbaiNeighborhoods[index];
-                    final name = neighborhood['name'] as String;
-                    final isSelected = _selectedNeighborhood == name;
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: FilterChip(
-                        selected: isSelected,
-                        showCheckmark: false,
-                        label: Text(
-                          name,
-                          style: GoogleFonts.outfit(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: isSelected
-                                ? (isDark ? AppTheme.primaryNavy : Colors.white)
-                                : (isDark ? Colors.white70 : AppTheme.primaryNavy),
-                          ),
-                        ),
-                        selectedColor: AppTheme.coralAccent,
-                        backgroundColor: isDark ? const Color(0xff162536) : Colors.white,
-                        onSelected: (selected) async {
-                          setState(() {
-                            _selectedNeighborhood = selected ? name : null;
-                            _isLoadingSpots = true;
-                          });
-                          
-                          if (_selectedNeighborhood != null) {
-                            final lat = neighborhood['lat'] as double;
-                            final lng = neighborhood['lng'] as double;
-                            await _repository.fetchAndMergeLiveSpots(lat: lat, lng: lng);
-                          } else {
-                            await _repository.fetchAndMergeLiveSpots(); // Default center
-                          }
-
-                          if (mounted) {
-                            setState(() {
-                              _isLoadingSpots = false;
-                              _refreshRecommendations();
-                            });
-                          }
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Filtered spots list title
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _selectedCategory == null
-                          ? "Recommended Spots"
-                          : "$_selectedCategory Spots",
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (_selectedCategory != null)
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _selectedCategory = null;
-                          });
-                          _refreshRecommendations();
-                        },
-                        child: const Text("Clear Category", style: TextStyle(color: AppTheme.coralAccent)),
-                      ),
-                  ],
-                ),
-              ),
-
-              // Recommendations List
-              if (_isLoadingSpots)
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: 3,
-                  itemBuilder: (context, index) => const _SpotShimmerCard(),
-                )
-              else if (_filteredSpots.isEmpty)
+              // --- Main Content ---
+              if (_isLoadingSpots) ...[
+                _buildLoadingState(context),
+              ] else if (_loadingTimedOut && _allScoredSpots.isEmpty) ...[
+                _buildTimeoutRetryWidget(context),
+              ] else if (_allScoredSpots.isEmpty) ...[
                 EmptyState(
-                  message: "No spots match your current filters. Tap below to reset all settings.",
+                  message: "No vibes found 🥲\n\nWe looked everywhere but your filters are way too specific. Try widening the radius or switching up the vibe.",
                   buttonText: "Reset Filters",
                   onAction: _resetFilters,
-                )
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _filteredSpots.length,
-                  itemBuilder: (context, index) {
-                    final spot = _filteredSpots[index];
-                    return SpotCard(spot: spot);
-                  },
                 ),
-              const SizedBox(height: 30),
+              ] else ...[
+                // When a specific category is selected, show a flat filtered rail
+                if (_selectedCategory != null) ...[
+                  _buildHorizontalRail(
+                    context,
+                    "${_categoryChips.firstWhere((c) => c['id'] == _selectedCategory, orElse: () => {"id": "", "name": "All"})['name']} Spots",
+                    _allScoredSpots,
+                  ),
+                ] else ...[
+                  // Tonight's Move hero card
+                  if (_tonightPick != null) ...[
+                    TonightPickBanner(spot: _tonightPick!),
+                    const SizedBox(height: 8),
+                  ],
 
+                  // Section rails (Zepto/Netflix/Spotify style)
+                  for (final section in _sectionRails) ...[
+                    _buildHorizontalRail(
+                      context,
+                      section['title']!,
+                      _getSpotsForSection(section['filter']!),
+                    ),
+                  ],
+                ],
+
+                const SizedBox(height: 30),
+              ],
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.coralAccent),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                _currentLoadingMessage,
+                style: GoogleFonts.outfit(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.softGrey,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Shimmer placeholders
+          ...List.generate(3, (_) => const _SpotShimmerCard()),
+        ],
       ),
     );
   }
@@ -420,74 +783,12 @@ class _SpotShimmerCardState extends State<_SpotShimmerCard> with SingleTickerPro
       builder: (context, child) {
         return Opacity(
           opacity: 0.3 + (_controller.value * 0.4),
-          child: Card(
-            elevation: 8,
-            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            shape: RoundedRectangleBorder(
+          child: Container(
+            height: 120,
+            margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+            decoration: BoxDecoration(
+              color: baseColor,
               borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  height: 180,
-                  decoration: BoxDecoration(
-                    color: baseColor,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            height: 18,
-                            width: 150,
-                            color: baseColor,
-                          ),
-                          Container(
-                            height: 18,
-                            width: 50,
-                            color: baseColor,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        height: 14,
-                        width: 100,
-                        color: baseColor,
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Container(
-                            height: 20,
-                            width: 60,
-                            decoration: BoxDecoration(
-                              color: baseColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            height: 20,
-                            width: 60,
-                            decoration: BoxDecoration(
-                              color: baseColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ),
           ),
         );
@@ -495,4 +796,3 @@ class _SpotShimmerCardState extends State<_SpotShimmerCard> with SingleTickerPro
     );
   }
 }
-

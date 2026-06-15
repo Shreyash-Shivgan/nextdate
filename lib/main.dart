@@ -4,11 +4,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import 'theme/app_theme.dart';
-import 'models/date_entry.dart';
 import 'models/spot.dart';
 import 'data/spots_repository.dart';
 import 'services/preferences_service.dart';
-import 'screens/onboarding/onboarding_screen.dart';
+import 'services/supabase_service.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/spot_detail/spot_detail_screen.dart';
 import 'screens/auth/auth_screen.dart';
@@ -21,8 +20,8 @@ void main() async {
 
   // Initialize Supabase
   await Supabase.initialize(
-    url: 'YOUR_SUPABASE_URL',
-    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+    url: 'https://lfrkkngxqccqaiikmwpm.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxmcmtrbmd4cWNjcWFpaWttd3BtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEzNTYxNzAsImV4cCI6MjA5NjkzMjE3MH0.tiQCRbSL2EXepgpzBYwijZ5T7bzdi7lEcVudeU_juXY',
   );
   
   // Initialize Preferences
@@ -55,6 +54,24 @@ class _NextDateAppState extends State<NextDateApp> {
     setState(() {
       _appKey = UniqueKey();
     });
+  }
+
+  void _ensureDefaultPrefs() {
+    if (!_prefs.isOnboardingComplete) {
+      _prefs.setPartner1Name("User");
+      _prefs.setVibePrefs(["Foodie", "Adventurous", "Cozy", "Cultural"]);
+      _prefs.setBudgetPref(2);
+      _prefs.setOnboardingComplete(true);
+      
+      // Async profile sync to Supabase
+      SupabaseService().upsertProfile(
+        name: "User",
+        vibes: ["Foodie", "Adventurous", "Cozy", "Cultural"],
+        budget: 2,
+      ).catchError((e) {
+        print("Failed to sync default profile to Supabase: $e");
+      });
+    }
   }
 
   @override
@@ -93,8 +110,8 @@ class _NextDateAppState extends State<NextDateApp> {
             );
           }
           if (snapshot.hasData) {
-            final bool onboardingDone = _prefs.isOnboardingComplete;
-            return onboardingDone ? const MainAppLoader() : const OnboardingScreen();
+            _ensureDefaultPrefs();
+            return const MainAppLoader();
           }
           return const AuthScreen();
         },

@@ -1,12 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/spot.dart';
-import '../../models/date_entry.dart';
 import '../../data/spots_repository.dart';
 import '../../services/preferences_service.dart';
 import '../../services/supabase_service.dart';
@@ -838,25 +835,8 @@ class _WriteReviewBottomSheet extends StatefulWidget {
 
 class _WriteReviewBottomSheetState extends State<_WriteReviewBottomSheet> {
   final _textController = TextEditingController();
-  final _picker = ImagePicker();
-  File? _selectedImage;
-  String _selectedVibe = 'Romantic';
+  double _rating = 5.0;
   bool _isSubmitting = false;
-
-  final List<String> _vibes = ['Cozy', 'Foodie', 'Adventurous', 'Cultural', 'Romantic'];
-
-  Future<void> _pickImage() async {
-    try {
-      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
-      if (picked != null) {
-        setState(() {
-          _selectedImage = File(picked.path);
-        });
-      }
-    } catch (e) {
-      print("Image picking error: $e");
-    }
-  }
 
   Future<void> _submitReview() async {
     final text = _textController.text.trim();
@@ -872,16 +852,10 @@ class _WriteReviewBottomSheetState extends State<_WriteReviewBottomSheet> {
     });
 
     try {
-      String? photoUrl;
-      if (_selectedImage != null) {
-        photoUrl = await SupabaseService().uploadReviewPhoto(_selectedImage!);
-      }
-
       await SupabaseService().submitReview(
         spotId: widget.spotId,
         reviewText: text,
-        vibeRating: _selectedVibe,
-        photoUrl: photoUrl,
+        rating: _rating,
       );
 
       widget.onSubmitted();
@@ -915,7 +889,6 @@ class _WriteReviewBottomSheetState extends State<_WriteReviewBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -951,32 +924,28 @@ class _WriteReviewBottomSheetState extends State<_WriteReviewBottomSheet> {
             ),
             const SizedBox(height: 16),
             Text(
-              "Select Date Vibe",
+              "Your Rating",
               style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.softGrey),
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              height: 40,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: _vibes.map((v) {
-                  final isSelected = _selectedVibe == v;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: ChoiceChip(
-                      selected: isSelected,
-                      label: Text(v),
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() {
-                            _selectedVibe = v;
-                          });
-                        }
-                      },
-                    ),
-                  );
-                }).toList(),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                final starRating = index + 1.0;
+                final isSelected = starRating <= _rating;
+                return IconButton(
+                  icon: Icon(
+                    isSelected ? Icons.star : Icons.star_border,
+                    color: AppTheme.warmGold,
+                    size: 36,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _rating = starRating;
+                    });
+                  },
+                );
+              }),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -987,49 +956,6 @@ class _WriteReviewBottomSheetState extends State<_WriteReviewBottomSheet> {
                 hintText: "Share what you ordered, the vibe, or any date tips...",
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                OutlinedButton.icon(
-                  onPressed: _pickImage,
-                  icon: const Icon(Icons.add_a_photo_rounded),
-                  label: const Text("Add Photo"),
-                ),
-                const SizedBox(width: 16),
-                if (_selectedImage != null)
-                  Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          _selectedImage!,
-                          width: 60,
-                          height: 60,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Positioned(
-                        top: -4,
-                        right: -4,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedImage = null;
-                            });
-                          },
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.black54,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.close, size: 16, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
             ),
             const SizedBox(height: 24),
             SizedBox(

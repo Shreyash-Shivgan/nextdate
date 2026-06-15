@@ -40,8 +40,6 @@ class _ConfettiOverlayState extends State<ConfettiOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Stack(
       children: [
         // Darkened glass-morphic background

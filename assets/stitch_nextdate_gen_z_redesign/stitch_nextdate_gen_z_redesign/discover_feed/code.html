@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NextDate - For You</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+        .gps-pulse {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 20px rgba(255, 111, 97, 0.15);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .premium-gradient-text {
+            background: linear-gradient(to right, #ffb4aa, #ff6f61);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container": "#122131",
+                      "error": "#ffb4ab",
+                      "background": "#051424",
+                      "primary-fixed-dim": "#ffb4aa",
+                      "primary": "#ffb4aa",
+                      "surface-container-lowest": "#010f1f",
+                      "on-tertiary-fixed-variant": "#004d66",
+                      "on-primary-fixed-variant": "#8b1a16",
+                      "surface-tint": "#ffb4aa",
+                      "on-background": "#d4e4fa",
+                      "primary-container": "#ff6f61",
+                      "outline-variant": "#58413e",
+                      "on-primary-container": "#6f0205",
+                      "inverse-primary": "#ac332a",
+                      "surface": "#051424",
+                      "on-primary": "#690004",
+                      "outline": "#a78a86",
+                      "on-primary-fixed": "#410001",
+                      "surface-bright": "#2c3a4c",
+                      "surface-container-high": "#1c2b3c",
+                      "tertiary": "#7bd1fa",
+                      "on-tertiary-fixed": "#001e2b",
+                      "inverse-surface": "#d4e4fa",
+                      "secondary-fixed-dim": "#bec6e0",
+                      "secondary-container": "#3f465c",
+                      "on-error-container": "#ffdad6",
+                      "tertiary-fixed-dim": "#7bd1fa",
+                      "surface-container-low": "#0d1c2d",
+                      "secondary": "#bec6e0",
+                      "surface-container-highest": "#273647",
+                      "on-secondary-fixed": "#131b2e",
+                      "on-secondary": "#283044",
+                      "tertiary-container": "#4da7ce",
+                      "primary-fixed": "#ffdad5",
+                      "on-secondary-fixed-variant": "#3f465c",
+                      "on-surface": "#d4e4fa",
+                      "on-tertiary-container": "#00394d",
+                      "on-secondary-container": "#adb4ce",
+                      "on-tertiary": "#003547",
+                      "inverse-on-surface": "#233143",
+                      "surface-variant": "#273647",
+                      "error-container": "#93000a",
+                      "on-surface-variant": "#e0bfbb",
+                      "on-error": "#690005",
+                      "secondary-fixed": "#dae2fd",
+                      "surface-dim": "#051424",
+                      "tertiary-fixed": "#c0e8ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-sm": "8px",
+                      "gutter": "16px",
+                      "stack-md": "16px",
+                      "stack-lg": "32px",
+                      "container-margin": "24px",
+                      "section-gap": "48px"
+              },
+              "fontFamily": {
+                      "headline-md": ["Outfit"],
+                      "headline-lg": ["Outfit"],
+                      "display-lg": ["Outfit"],
+                      "body-md": ["Outfit"],
+                      "quote-italic": ["Outfit"],
+                      "body-lg": ["Outfit"],
+                      "label-sm": ["Outfit"],
+                      "headline-lg-mobile": ["Outfit"]
+              },
+              "fontSize": {
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "quote-italic": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary/30 selection:text-primary">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface/15 backdrop-blur-[20px] dark:bg-surface/15 border-b border-white/20 shadow-[0_0_20px_rgba(255,111,97,0.1)] flex justify-between items-center px-container-margin h-16">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary gps-pulse">location_on</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary dark:text-primary-fixed-dim tracking-tight">For You ✨</h1>
+</div>
+<button class="active:scale-95 transition-transform hover:opacity-80">
+<span class="material-symbols-outlined text-on-surface-variant">tune</span>
+</button>
+</header>
+<main class="pt-20 pb-32">
+<!-- Category & Radius Chips -->
+<section class="px-container-margin mb-stack-lg">
+<div class="flex overflow-x-auto hide-scrollbar gap-stack-sm pb-2">
+<button class="flex-shrink-0 px-4 py-2 rounded-full bg-primary-container text-on-primary-container font-label-sm text-label-sm shadow-[0_0_15px_rgba(255,111,97,0.3)]">All</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full glass-card text-on-surface-variant font-label-sm text-label-sm hover:bg-white/10 transition-colors">Food</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full glass-card text-on-surface-variant font-label-sm text-label-sm hover:bg-white/10 transition-colors">Coffee</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full glass-card text-on-surface-variant font-label-sm text-label-sm hover:bg-white/10 transition-colors">Nightlife</button>
+<button class="flex-shrink-0 px-4 py-2 rounded-full glass-card text-on-surface-variant font-label-sm text-label-sm hover:bg-white/10 transition-colors">Culture</button>
+<div class="w-px h-6 bg-white/20 self-center mx-1"></div>
+<button class="flex-shrink-0 px-4 py-2 rounded-full glass-card text-tertiary font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">map</span>
+                    5km
+                </button>
+</div>
+</section>
+<!-- Tonight's Move Hero Banner -->
+<section class="px-container-margin mb-section-gap">
+<div class="relative w-full aspect-[4/5] rounded-lg overflow-hidden group">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A high-end cinematic shot of a vibrant, neon-lit underground jazz club during a live performance. The atmosphere is filled with a warm, amber glow from table candles and cool blue stage lights. Elegant people are seen in soft focus, enjoying craft cocktails. The visual style is premium and immersive with deep shadows and high-contrast digital nightlife aesthetics in an immersive dark-mode setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB244jHA58K1K_4D8goUR-6Nyp0uRgsnw3Qi_qVbOvB3XRlt1DsnEWFMD4YK0YbbdnYmk2Sa1ulSZcN07AEwP3j5EOt9yP0IhshUwX6FMXXuNdLGhLSZD8N4dKN1ew3Y1n_t9l56zEJI9iMl2q3D4Z1WM9dZeqBNB_hmuywqPWP6P6zk_dR7Om0OrTejmWjN0PRxaUIJcWfXW_Q6oeTYbn8Jl6TzmONoHCFOaACZZHC3_WrvIb6XtJ2RZa1ap1Nd9jziaVyWR2URdw"/>
+<!-- Overlay Gradient -->
+<div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-90"></div>
+<!-- Content Overlay -->
+<div class="absolute bottom-0 left-0 w-full p-container-margin space-y-stack-md">
+<div class="flex items-center justify-between">
+<span class="px-3 py-1 bg-primary text-on-primary font-label-sm text-label-sm rounded-full animate-pulse">TONIGHT'S MOVE 🔥</span>
+<div class="bg-primary-container/90 backdrop-blur-md px-3 py-2 rounded-lg flex items-center gap-1 border border-white/20 shadow-[0_0_20px_rgba(255,111,97,0.4)]">
+<span class="text-on-primary-container font-headline-md text-headline-md">94%</span>
+<span class="text-on-primary-container font-label-sm text-label-sm">Match</span>
+</div>
+</div>
+<div>
+<h2 class="font-display-lg text-display-lg leading-none tracking-tight mb-2">The Blue Velvet</h2>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+<span>Soho • 0.8 km away</span>
+<span class="w-1 h-1 bg-white/30 rounded-full"></span>
+<span>$$$</span>
+</div>
+</div>
+<p class="text-on-surface-variant font-body-md text-body-md line-clamp-2 italic border-l-2 border-primary pl-4">
+                        "Your shared love for vintage vinyl and espresso martinis makes this the perfect vibe for tonight's date."
+                    </p>
+<button class="w-full py-4 bg-primary text-on-primary font-headline-md text-headline-md rounded-lg active:scale-[0.98] transition-transform shadow-[0_10px_30px_rgba(255,111,97,0.3)]">
+                        Lock it in
+                    </button>
+</div>
+</div>
+</section>
+<!-- Vibe Rail: Trending Tonight -->
+<section class="mb-section-gap">
+<div class="px-container-margin flex justify-between items-end mb-stack-md">
+<div>
+<h3 class="font-headline-md text-headline-md">Trending Tonight</h3>
+<p class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest">Where the crowd is</p>
+</div>
+<button class="text-primary font-label-sm text-label-sm">View All</button>
+</div>
+<div class="flex overflow-x-auto hide-scrollbar gap-stack-md px-container-margin">
+<!-- Item Card 1 -->
+<div class="flex-shrink-0 w-44">
+<div class="relative aspect-[3/4] rounded-lg overflow-hidden glass-card mb-2">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="A trendy rooftop bar at sunset, overlooking a modern city skyline. The sky is a gradient of deep purple and sunset pink. Glass railings and minimalist furniture are bathed in the warm, golden hour light. The overall mood is sophisticated and energetic, fitting the high-energy Gen Z discovery platform aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkHcstfkMqzV04kFxIeotnCt1OJE4SJzf388zyoql8w9b38gfE1mYfx22lSS8Q2ZS7R9PZbQnks086tH0bSmpQ1w-5LCn1BscuDRK5sSj-0VIL6DX_k8sbXDbYJYCwFKwALB3WDXf0E_OHR9Z2qONFe4uMEOe0FrEJS-gqmrEkM5NtjKbOStv0sTPBSBdNpLIDm_fOt0pPtqUX2OlYFp8xYhtm4YqlhKX0WrgDmP1nzHm9eWMPotPrBIO6fcKHLkFc68LbPSZNi8I"/>
+<div class="absolute top-2 right-2 px-2 py-1 bg-surface/80 backdrop-blur-md rounded-full font-label-sm text-label-sm text-tertiary border border-white/10">88%</div>
+</div>
+<h4 class="font-headline-md text-headline-md text-[16px] leading-tight truncate">Neon Garden</h4>
+<p class="text-on-surface-variant font-label-sm text-label-sm">Cocktail Bar • 1.2km</p>
+</div>
+<!-- Item Card 2 -->
+<div class="flex-shrink-0 w-44">
+<div class="relative aspect-[3/4] rounded-lg overflow-hidden glass-card mb-2">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="A cozy, high-concept boutique cafe with industrial design elements and lush hanging plants. Warm filament bulbs create a series of soft glows throughout the space. The visual style is intimate and minimalist, utilizing dark textures and emerald green accents. Immersive dark-mode digital atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8tW1PAX0Ltti4F6l9OXnmR7MtT2gp3xPxAf5OKQ5oFdBCx5zwOUnXxVUCdkn1AGCBcVgPwQW183fHhpPYD_MWgRmIjEwI_rCrfBV68RxnxCPV3zy97q4ta9PDsd4AFoe0gWI3bLInqCI4XXX1FtZkdnn4CfGhDD4RogYeXxV6Wb1euHVj54_aBoPKYfeyCMQrmaVhVLkp63O4chixTxdWi1XP4eaOlXqcGKavyJZ0cUty9Vnx1L8kyu-qWUnIvz09euSebwOdGq4"/>
+<div class="absolute top-2 right-2 px-2 py-1 bg-surface/80 backdrop-blur-md rounded-full font-label-sm text-label-sm text-tertiary border border-white/10">82%</div>
+</div>
+<h4 class="font-headline-md text-headline-md text-[16px] leading-tight truncate">Foundry Coffee</h4>
+<p class="text-on-surface-variant font-label-sm text-label-sm">Artisanal • 0.5km</p>
+</div>
+<!-- Item Card 3 -->
+<div class="flex-shrink-0 w-44">
+<div class="relative aspect-[3/4] rounded-lg overflow-hidden glass-card mb-2">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="An artistic gallery opening in a converted warehouse. Large-scale abstract paintings are illuminated by sharp spotlights. Minimalist architecture with high ceilings and polished concrete floors. The scene is populated by fashionable young adults in a high-key yet atmospheric setting. Vibrant and culturally rich visual style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDktZHlujPzFLnSnGhMg_5kmKC26TpLMD6PswrIWDWdP2thglAV_j2z0ZDFNctsSZFdPJxiJYbolTs5SEZtqK5deEWl5ACaOoibQhIuO9CeBHJFJFP2IkpBpXr7Mcd2yVSeJtrhAjHDhjF5U3VI6RDJvzjblKlU8evNGy6ZSPGZZysibGILHwP74_FpjpPCI2R1NYU6qeqpdXYIl_urTosrwYvFH_T1OrQKIounE3onIthFRMvSCllx6DHn5xvp96cMpQzY7MXLvvE"/>
+<div class="absolute top-2 right-2 px-2 py-1 bg-surface/80 backdrop-blur-md rounded-full font-label-sm text-label-sm text-tertiary border border-white/10">91%</div>
+</div>
+<h4 class="font-headline-md text-headline-md text-[16px] leading-tight truncate">Shift Gallery</h4>
+<p class="text-on-surface-variant font-label-sm text-label-sm">Culture • 2.1km</p>
+</div>
+</div>
+</section>
+<!-- Vibe Rail: Near You -->
+<section class="mb-section-gap">
+<div class="px-container-margin flex justify-between items-end mb-stack-md">
+<div>
+<h3 class="font-headline-md text-headline-md">Near You</h3>
+<p class="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest">Walking distance vibes</p>
+</div>
+<button class="text-primary font-label-sm text-label-sm">View All</button>
+</div>
+<div class="flex overflow-x-auto hide-scrollbar gap-stack-md px-container-margin">
+<!-- Item Card 4 -->
+<div class="flex-shrink-0 w-44">
+<div class="relative aspect-[3/4] rounded-lg overflow-hidden glass-card mb-2">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="A sleek, modern speakeasy entrance with a single glowing neon sign. The dark brick walls and polished metal door reflect the streetlights. Cinematic lighting with a focus on textures and atmospheric shadows. A sense of mystery and exclusivity, perfect for a high-end date discovery experience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKOpXbupyw0uoj0zUfYHwue13zSsMVvCgdPqjCAKjehr4HQ-v3H9uVURZzeoQAdSwwM1iT56XO08GrpGgby0BAWc7z3ySgCALH73yE6KAxTXfC8KYHIxVQvCplmHmwS32I2Se51Vuyx7TGhz9VYehlksW75JAcMYQ0-YAB9eaeAEWQvt_9PxcwQyfO0Iip_xBwMMwj6RH4FSrFghsV0TAvxtbdLD8DRGS86_uw8pHZW0HkTswcdUaqyEWtadcIGRdi7tD3n07zIEY"/>
+<div class="absolute top-2 right-2 px-2 py-1 bg-surface/80 backdrop-blur-md rounded-full font-label-sm text-label-sm text-tertiary border border-white/10">76%</div>
+</div>
+<h4 class="font-headline-md text-headline-md text-[16px] leading-tight truncate">Hush Speak</h4>
+<p class="text-on-surface-variant font-label-sm text-label-sm">Bar • 300m</p>
+</div>
+<!-- Item Card 5 -->
+<div class="flex-shrink-0 w-44">
+<div class="relative aspect-[3/4] rounded-lg overflow-hidden glass-card mb-2">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="A minimalist outdoor patio with strings of Edison bulbs stretching across a courtyard. Lush greenery and comfortable, modern seating. The lighting is soft and romantic, creating an intimate evening atmosphere. The style is fresh and approachable for a premium Gen Z audience." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfQzVb5gXNKpwWWHu7dLbVbOMBELNxpbQQMhT65xFteAIf6KOmwyf9tJCWqwo7DwAKCszukBwU2vgQl7krcUxNqDKcMlBSqHDXa-SCNhQXAm9riOuADR2SIoBNgAgxtpMMsoE9y6fWY7uGc7f3UD7Ho51xJj3A3gwvN4k-26KIrneaZeazo0IDZp7Vfsw0qi23d3tyUlzDF2jIxMXjSr-zyGi5JQHgp-uwI0Q7zj9lSWcXStcZVZc8vioklKVRsWV7YtoGFj1uBI8"/>
+<div class="absolute top-2 right-2 px-2 py-1 bg-surface/80 backdrop-blur-md rounded-full font-label-sm text-label-sm text-tertiary border border-white/10">85%</div>
+</div>
+<h4 class="font-headline-md text-headline-md text-[16px] leading-tight truncate">Patio 08</h4>
+<p class="text-on-surface-variant font-label-sm text-label-sm">Bistro • 600m</p>
+</div>
+</div>
+</section>
+<!-- Hidden Gems Section - Bento Grid Style -->
+<section class="px-container-margin">
+<h3 class="font-headline-md text-headline-md mb-stack-md">Hidden Gems 💎</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="relative rounded-lg glass-card h-48 overflow-hidden col-span-2 group">
+<img class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform" data-alt="A wide-angle shot of a stunning rooftop infinity pool at night, overlooking a neon-drenched city. The water reflects the city lights, creating a magical, shimmering effect. The architecture is ultra-modern glass and steel. The atmosphere is one of ultimate luxury and cinematic wonder in a digital nightlife theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLyxPkKM56ZZVNHGNbb1T-wdRhEXM5YXY6HmvqjtmkgUiNde0Sha4DO3knlVHuTbWsUQETBmE88T80gfFIEGudSiXVQt9y8R0ppLdpyzZr3m017hvffVjvM4ZMWSZ3mIyCX8o1xwhhD88cfJzJpOPGyyjeMAjeO9hQQl5Z2Rh1T_RfopXwMWQt0PbvW9WZZET6ZxAyNwwG__Xa9rrdYItEtI0HWtkpYuSvhzkhbYyizSwatYMx5O-ht1PiqAqdPziRc7t-Zi2Wspo"/>
+<div class="absolute inset-0 p-4 flex flex-col justify-end">
+<div class="flex items-center gap-2 mb-1">
+<span class="px-2 py-0.5 bg-tertiary/20 text-tertiary border border-tertiary/30 rounded font-label-sm text-label-sm">Secret Spot</span>
+<span class="text-white/70 font-label-sm text-label-sm">99% Match</span>
+</div>
+<h4 class="font-headline-md text-headline-md">Sky Lounge Infinity</h4>
+</div>
+</div>
+<div class="relative rounded-lg glass-card h-40 overflow-hidden group">
+<img class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform" data-alt="A modern minimalist library lounge with floor-to-ceiling bookshelves and plush velvet armchairs. The room is softly lit by individual reading lamps and a fireplace. The aesthetic is warm, intellectual, and sophisticated, perfect for a quiet, intimate date spot in a premium dark-mode UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRgvyt2jX4S7JQ2mudnpJPuVpAU5UKyaiOxIYlg6BJQk7JZOu6d0RAxThLSS23IOG7MXx48_jaZ4tVmkqmW9kIchx4KmaJy_kNEi4hTiG4dqpjj_hyxraCgYPNBrntd5L2hte70Ty1NkBdoRH23RQHbvM3e2AR_CbS71W7E9m_afijj_oi2PbRQqTu6GG7ZS95haZ8-S9ewV_hQHVWnlsc7eX8nolfseLsV908Udp8gqCjU3FtyOHw-dcbzABZTsyg9j29glWlbAY"/>
+<div class="absolute inset-0 p-4 flex flex-col justify-end">
+<h4 class="font-headline-md text-headline-md text-[18px]">Libro</h4>
+</div>
+</div>
+<div class="relative rounded-lg glass-card h-40 overflow-hidden group">
+<img class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform" data-alt="A close-up of beautifully plated artisanal cuisine in a dark, high-contrast restaurant setting. The food is vibrant with natural colors, highlighted by a sharp spotlight. The background is a blur of charcoal and deep wood tones. The visual style is tactile and high-end, focusing on premium quality and intimacy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRTP-I1kgOXZ2ihKkvgOmUC4fYfNPFW1mvD83069oBqReKz42MZi3vHee1Z2GiA9eDMC85M8AjzEf_iN3e4Gx0i2dJsJvcvSMK_cchFLwozZIGFKO4HQO0mHzCHUMiVrwiLHjwjx8k2lQHGNwA2YxODlCXure15MGE33SQ8g-SmZw9SWQfdUQfcbJ6y0D9NdBDpHxmQKNRVjZhLTkgGfojihhjrToG9P0JQHuwyazpgZUI4f1xG8by_l6cpUSMjam05iX8-HiG04A"/>
+<div class="absolute inset-0 p-4 flex flex-col justify-end">
+<h4 class="font-headline-md text-headline-md text-[18px]">Umami Kitchen</h4>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-lg bg-surface/15 backdrop-blur-[20px] dark:bg-surface/15 border-t border-white/20 shadow-[0_-10px_30px_rgba(255,111,97,0.15)] flex justify-around items-center px-gutter py-4">
+<button class="flex items-center justify-center bg-primary-container/20 text-primary rounded-full p-3 shadow-[0_0_15px_rgba(255,111,97,0.4)] active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">explore</span>
+</button>
+<button class="flex items-center justify-center text-on-surface-variant/60 p-3 hover:text-primary transition-colors active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">auto_awesome</span>
+</button>
+<button class="flex items-center justify-center text-on-surface-variant/60 p-3 hover:text-primary transition-colors active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">radar</span>
+</button>
+<button class="flex items-center justify-center text-on-surface-variant/60 p-3 hover:text-primary transition-colors active:scale-90 transition-transform duration-200">
+<span class="material-symbols-outlined">person</span>
+</button>
+</nav>
+<script>
+        // Simple micro-interactions for the chips
+        document.querySelectorAll('button.rounded-full').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // If it's a category chip, toggle active state
+                if (!this.classList.contains('bg-primary-container') && !this.innerText.includes('km')) {
+                    const parent = this.parentElement;
+                    parent.querySelector('.bg-primary-container')?.classList.remove('bg-primary-container', 'text-on-primary-container', 'shadow-[0_0_15px_rgba(255,111,97,0.3)]');
+                    parent.querySelector('.bg-primary-container')?.classList.add('glass-card', 'text-on-surface-variant');
+                    
+                    this.classList.remove('glass-card', 'text-on-surface-variant');
+                    this.classList.add('bg-primary-container', 'text-on-primary-container', 'shadow-[0_0_15_rgba(255,111,97,0.3)]');
+                }
+            });
+        });
+
+        // Horizontal scroll momentum effect simulation
+        const scrollContainers = document.querySelectorAll('.hide-scrollbar');
+        scrollContainers.forEach(container => {
+            container.addEventListener('wheel', (evt) => {
+                evt.preventDefault();
+                container.scrollLeft += evt.deltaY;
+            });
+        });
+    </script>
+</body></html>

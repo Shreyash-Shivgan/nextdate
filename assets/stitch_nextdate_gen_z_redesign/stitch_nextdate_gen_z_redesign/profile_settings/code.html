@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NextDate | Profile &amp; Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-border-gradient {
+            border: 1px solid transparent;
+            background: linear-gradient(rgba(5, 20, 36, 1), rgba(5, 20, 36, 1)) padding-box,
+                        linear-gradient(to bottom right, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05)) border-box;
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 30px rgba(255, 111, 97, 0.15);
+        }
+        .pulsing-dot {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(123, 209, 250, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(123, 209, 250, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(123, 209, 250, 0); }
+        }
+        body {
+            background-color: #051424;
+            color: #d4e4fa;
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#122131",
+                        "error": "#ffb4ab",
+                        "background": "#051424",
+                        "primary-fixed-dim": "#ffb4aa",
+                        "primary": "#ffb4aa",
+                        "surface-container-lowest": "#010f1f",
+                        "on-tertiary-fixed-variant": "#004d66",
+                        "on-primary-fixed-variant": "#8b1a16",
+                        "surface-tint": "#ffb4aa",
+                        "on-background": "#d4e4fa",
+                        "primary-container": "#ff6f61",
+                        "outline-variant": "#58413e",
+                        "on-primary-container": "#6f0205",
+                        "inverse-primary": "#ac332a",
+                        "surface": "#051424",
+                        "on-primary": "#690004",
+                        "outline": "#a78a86",
+                        "on-primary-fixed": "#410001",
+                        "surface-bright": "#2c3a4c",
+                        "surface-container-high": "#1c2b3c",
+                        "tertiary": "#7bd1fa",
+                        "on-tertiary-fixed": "#001e2b",
+                        "inverse-surface": "#d4e4fa",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "secondary-container": "#3f465c",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#7bd1fa",
+                        "surface-container-low": "#0d1c2d",
+                        "secondary": "#bec6e0",
+                        "surface-container-highest": "#273647",
+                        "on-secondary-fixed": "#131b2e",
+                        "on-secondary": "#283044",
+                        "tertiary-container": "#4da7ce",
+                        "primary-fixed": "#ffdad5",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-surface": "#d4e4fa",
+                        "on-tertiary-container": "#00394d",
+                        "on-secondary-container": "#adb4ce",
+                        "on-tertiary": "#003547",
+                        "inverse-on-surface": "#233143",
+                        "surface-variant": "#273647",
+                        "error-container": "#93000a",
+                        "on-surface-variant": "#e0bfbb",
+                        "on-error": "#690005",
+                        "secondary-fixed": "#dae2fd",
+                        "surface-dim": "#051424",
+                        "tertiary-fixed": "#c0e8ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "gutter": "16px",
+                        "stack-md": "16px",
+                        "stack-lg": "32px",
+                        "container-margin": "24px",
+                        "section-gap": "48px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Outfit"],
+                        "headline-lg": ["Outfit"],
+                        "display-lg": ["Outfit"],
+                        "body-md": ["Outfit"],
+                        "quote-italic": ["Outfit"],
+                        "body-lg": ["Outfit"],
+                        "label-sm": ["Outfit"],
+                        "headline-lg-mobile": ["Outfit"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="dark bg-background text-on-surface">
+<!-- Top App Bar (Shared Component Logic) -->
+<header class="fixed top-0 w-full z-50 bg-surface/15 backdrop-blur-[20px] dark:bg-surface/15 border-b border-white/20 shadow-[0_0_20px_rgba(255,111,97,0.1)] flex justify-between items-center px-container-margin h-16">
+<div class="flex items-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim">location_on</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-primary dark:text-primary-fixed-dim tracking-tight">NextDate</span>
+</div>
+<button class="flex items-center justify-center text-primary hover:opacity-80 transition-opacity active:scale-95 transition-transform">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 px-container-margin max-w-2xl mx-auto space-y-section-gap">
+<!-- Background Animation Layer -->
+<div class="fixed inset-0 -z-10 opacity-30">
+
+</div>
+<!-- User Profile Header -->
+<section class="flex flex-col items-center gap-stack-md text-center">
+<div class="relative">
+<div class="w-32 h-32 rounded-full border-2 border-primary-container/30 p-1 relative">
+<img alt="User Profile" class="w-full h-full object-cover rounded-full shadow-xl" data-alt="A cinematic close-up portrait of a stylish young man with short dark hair and a confident expression. The lighting is moody and dramatic with deep blue shadows and a soft pink neon glow outlining his silhouette against a dark background. The overall aesthetic is high-fashion and modern, fitting a premium digital dating platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPVo1YA41KydG_bBJQwbQJRGFGKI6Y7IDttaW9FbV4kPTqf8tldcMswhccG_dNbNs6KiPgT_zV3PDzAxTN7_I7fepJY2h-P-ytPJfVlNSR5eEBy4gLWf3tORgNGauSDN23wwKaIojiFwHLbxtjVLGGNbe_XfUnmXfwgx0O0l4R02lQ8Ic429ob4uzcgBgGz_tkDc8xR7BUuUxkbKAZeMB7SwcrDqDeBMKBSiSb-s4BTE6L7VDcWc6xxPtkcGCOArJYn-6z6uni-Yo"/>
+<!-- Verified Glow Dot -->
+<div class="absolute bottom-1 right-1 w-6 h-6 bg-tertiary rounded-full border-4 border-background pulsing-dot flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] text-on-tertiary font-bold" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+</div>
+<div class="space-y-1">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Alex Rivera</h1>
+<p class="font-body-md text-body-md text-on-surface-variant/80">alex.rivera@nextdate.io</p>
+</div>
+</section>
+<!-- Couple Sync Section -->
+<section class="space-y-stack-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                    Couple Sync
+                </h2>
+<span class="px-3 py-1 rounded-full bg-primary-container/10 text-primary-container text-label-sm font-label-sm uppercase tracking-wider">Beta</span>
+</div>
+<div class="glass-panel glass-border-gradient rounded-lg p-6 space-y-6">
+<!-- Sync Code Display -->
+<div class="space-y-stack-sm">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Your Private Sync Code</label>
+<div class="flex items-center justify-between bg-surface-container-highest/50 rounded-lg p-4 border border-white/5">
+<span class="font-headline-md text-headline-md tracking-[0.2em] text-primary-fixed-dim">ND-8821-X</span>
+<button class="text-primary hover:text-white transition-colors active:scale-90 transition-transform">
+<span class="material-symbols-outlined">content_copy</span>
+</button>
+</div>
+</div>
+<!-- Partner Input -->
+<div class="space-y-stack-sm">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Partner's Code</label>
+<div class="flex gap-stack-sm">
+<input class="flex-grow bg-surface-container-highest/30 border border-white/10 rounded-lg px-4 py-3 text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary-container transition-colors" placeholder="Enter ND code..." type="text"/>
+<button class="bg-primary-container hover:bg-primary-container/80 text-on-primary-container font-headline-md text-headline-md px-6 rounded-lg transition-all active:scale-95 flex items-center gap-2">
+                            Link <span class="material-symbols-outlined text-[20px]">link</span>
+</button>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant/60 italic px-1">Syncing unlocks shared memories and compatibility heatmaps.</p>
+</div>
+</div>
+</section>
+<!-- Interface Settings -->
+<section class="space-y-stack-md">
+<h2 class="font-headline-md text-headline-md text-on-surface">Interface Settings</h2>
+<div class="grid grid-cols-3 gap-stack-md">
+<!-- Auto -->
+<div class="glass-panel glass-border-gradient rounded-lg p-4 flex flex-col items-center gap-stack-sm cursor-pointer hover:bg-white/5 transition-colors border-primary-container/40">
+<span class="material-symbols-outlined text-primary-container">brightness_auto</span>
+<span class="font-label-sm text-label-sm">Auto</span>
+</div>
+<!-- Afternoon -->
+<div class="glass-panel glass-border-gradient rounded-lg p-4 flex flex-col items-center gap-stack-sm cursor-pointer hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">light_mode</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Afternoon</span>
+</div>
+<!-- Evening -->
+<div class="glass-panel glass-border-gradient rounded-lg p-4 flex flex-col items-center gap-stack-sm cursor-pointer hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">dark_mode</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Evening</span>
+</div>
+</div>
+</section>
+<!-- Engineering Diagnostics -->
+<section class="space-y-stack-md pb-12">
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">developer_mode</span>
+                Engineering
+            </h2>
+<div class="glass-panel glass-border-gradient rounded-lg overflow-hidden">
+<div class="p-6 space-y-4">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">Developer Diagnostics 🛠️</span>
+<span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]"></span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest/50 p-4 rounded-lg space-y-2 border border-white/5">
+<p class="font-label-sm text-label-sm text-on-surface-variant/50">GPS Metrics</p>
+<p class="font-body-md text-body-md font-mono text-tertiary">34.0522° N, 118.2437° W</p>
+<div class="h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-3/4"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest/50 p-4 rounded-lg space-y-2 border border-white/5">
+<p class="font-label-sm text-label-sm text-on-surface-variant/50">Raw API Latency</p>
+<p class="font-body-md text-body-md font-mono text-secondary">24ms (shard-04)</p>
+<div class="h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-1/3"></div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest/50 p-3 rounded-lg border border-white/5">
+<pre class="text-[10px] font-mono text-on-surface-variant/40 leading-tight">{
+  "client_version": "v4.2.1-prod",
+  "auth_token": "valid_sha256_...8f2b",
+  "render_engine": "webgl-neon-core",
+  "websocket": "connected"
+}</pre>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Nav Bar (Shared Component Logic) -->
+<nav class="fixed bottom-0 w-full z-50 bg-surface/15 backdrop-blur-[20px] dark:bg-surface/15 border-t border-white/20 shadow-[0_-10px_30px_rgba(255,111,97,0.15)] flex justify-around items-center px-gutter py-4">
+<a class="flex items-center justify-center text-on-surface-variant/60 p-3 hover:text-primary transition-colors active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">explore</span>
+</a>
+<a class="flex items-center justify-center text-on-surface-variant/60 p-3 hover:text-primary transition-colors active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+</a>
+<a class="flex items-center justify-center text-on-surface-variant/60 p-3 hover:text-primary transition-colors active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">radar</span>
+</a>
+<a class="flex items-center justify-center bg-primary-container/20 text-primary rounded-full p-3 shadow-[0_0_15px_rgba(255,111,97,0.4)] active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for UI feel
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // Theme toggle logic visual only
+        const themeTiles = document.querySelectorAll('.grid-cols-3 > div');
+        themeTiles.forEach(tile => {
+            tile.addEventListener('click', () => {
+                themeTiles.forEach(t => {
+                    t.classList.remove('border-primary-container/40');
+                    t.querySelector('span:first-child').classList.replace('text-primary-container', 'text-on-surface-variant');
+                    t.querySelector('span:last-child').classList.replace('text-on-surface', 'text-on-surface-variant');
+                });
+                tile.classList.add('border-primary-container/40');
+                tile.querySelector('span:first-child').classList.replace('text-on-surface-variant', 'text-primary-container');
+                tile.querySelector('span:last-child').classList.replace('text-on-surface-variant', 'text-on-surface');
+            });
+        });
+    </script>
+</body></html>

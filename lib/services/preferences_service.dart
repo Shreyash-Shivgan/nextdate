@@ -100,6 +100,14 @@ class PreferencesService {
     await _prefs.setString('theme_override', override);
   }
 
+  // Spot coordinates caching
+  double? getSpotLat(String id) => _prefs.getDouble('spot_lat_$id');
+  double? getSpotLng(String id) => _prefs.getDouble('spot_lng_$id');
+  Future<void> cacheSpotCoords(String id, double lat, double lng) async {
+    await _prefs.setDouble('spot_lat_$id', lat);
+    await _prefs.setDouble('spot_lng_$id', lng);
+  }
+
   // Reset all data
   Future<void> resetAll() async {
     await _prefs.clear();

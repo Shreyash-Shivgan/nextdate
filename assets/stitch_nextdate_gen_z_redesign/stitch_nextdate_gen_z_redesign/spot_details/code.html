@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Spot Detail - NextDate</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container": "#122131",
+                    "error": "#ffb4ab",
+                    "background": "#051424",
+                    "primary-fixed-dim": "#ffb4aa",
+                    "primary": "#ffb4aa",
+                    "surface-container-lowest": "#010f1f",
+                    "on-tertiary-fixed-variant": "#004d66",
+                    "on-primary-fixed-variant": "#8b1a16",
+                    "surface-tint": "#ffb4aa",
+                    "on-background": "#d4e4fa",
+                    "primary-container": "#ff6f61",
+                    "outline-variant": "#58413e",
+                    "on-primary-container": "#6f0205",
+                    "inverse-primary": "#ac332a",
+                    "surface": "#051424",
+                    "on-primary": "#690004",
+                    "outline": "#a78a86",
+                    "on-primary-fixed": "#410001",
+                    "surface-bright": "#2c3a4c",
+                    "surface-container-high": "#1c2b3c",
+                    "tertiary": "#7bd1fa",
+                    "on-tertiary-fixed": "#001e2b",
+                    "inverse-surface": "#d4e4fa",
+                    "secondary-fixed-dim": "#bec6e0",
+                    "secondary-container": "#3f465c",
+                    "on-error-container": "#ffdad6",
+                    "tertiary-fixed-dim": "#7bd1fa",
+                    "surface-container-low": "#0d1c2d",
+                    "secondary": "#bec6e0",
+                    "surface-container-highest": "#273647",
+                    "on-secondary-fixed": "#131b2e",
+                    "on-secondary": "#283044",
+                    "tertiary-container": "#4da7ce",
+                    "primary-fixed": "#ffdad5",
+                    "on-secondary-fixed-variant": "#3f465c",
+                    "on-surface": "#d4e4fa",
+                    "on-tertiary-container": "#00394d",
+                    "on-secondary-container": "#adb4ce",
+                    "on-tertiary": "#003547",
+                    "inverse-on-surface": "#233143",
+                    "surface-variant": "#273647",
+                    "error-container": "#93000a",
+                    "on-surface-variant": "#e0bfbb",
+                    "on-error": "#690005",
+                    "secondary-fixed": "#dae2fd",
+                    "surface-dim": "#051424",
+                    "tertiary-fixed": "#c0e8ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "8px",
+                    "gutter": "16px",
+                    "stack-md": "16px",
+                    "stack-lg": "32px",
+                    "container-margin": "24px",
+                    "section-gap": "48px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Outfit"],
+                    "headline-lg": ["Outfit"],
+                    "display-lg": ["Outfit"],
+                    "body-md": ["Outfit"],
+                    "quote-italic": ["Outfit"],
+                    "body-lg": ["Outfit"],
+                    "label-sm": ["Outfit"],
+                    "headline-lg-mobile": ["Outfit"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "quote-italic": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #051424;
+            color: #d4e4fa;
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 20px rgba(255, 111, 97, 0.2);
+        }
+        .hero-gradient {
+            background: linear-gradient(to top, #051424 0%, transparent 40%, transparent 100%);
+        }
+        .animate-pulse-slow {
+            animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+        .checklist-item.completed {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="pb-32">
+<!-- Hero Section -->
+<section class="relative h-[530px] w-full overflow-hidden">
+<img alt="Vibe Rooftop Lounge" class="absolute inset-0 w-full h-full object-cover" data-alt="A luxurious, high-end rooftop cocktail bar at twilight with panoramic city views in the background. The scene is illuminated by warm amber string lights and neon pink accents, reflecting off polished glass surfaces. The atmosphere is intimate and sophisticated, featuring velvet seating and lush greenery. The lighting creates a cinematic, immersive dark-mode aesthetic with deep blues and vibrant sunset pinks." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3Shok9w5OdGUDiODNgo4zpmwIjPynQDa9fgN0U6KwIqtIxKkiheUAPKdhe3LcY7U6Mi9gcDCOYjAzX481omF5rIisGZXTkmZxDggvUyLrVqzdVkjSBQ0Ky07v0QFpsaVog8NHcl9Cg656yIuER_WDaMpv5I8AVxup89HTo4XLr1qdjI0KZV9qgOrCik545h7s0Uh5gdTJ8ZHJCsvFX4efklIvOsj9sFz0jMVR4Hf5n5nyevVTkfN2hTnBor0kr5pZLiBUXnSAai4"/>
+<div class="absolute inset-0 hero-gradient"></div>
+<!-- Navigation Overlay -->
+<div class="absolute top-0 left-0 right-0 flex justify-between items-center px-container-margin h-20 z-10">
+<button class="p-3 bg-surface/20 backdrop-blur-md rounded-full border border-white/10 active:scale-95 transition-transform" onclick="window.history.back()">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+</button>
+<button class="p-3 bg-surface/20 backdrop-blur-md rounded-full border border-white/10 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-on-surface">share</span>
+</button>
+</div>
+<!-- Hero Content Bottom -->
+<div class="absolute bottom-0 left-0 w-full px-container-margin pb-stack-lg">
+<h1 class="font-display-lg text-display-lg text-white mb-2">Neon Dusk Lounge</h1>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-body-md" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Arts District, Downtown</span>
+</div>
+</div>
+</section>
+<!-- Details Content -->
+<main class="px-container-margin -mt-4 relative z-20 space-y-section-gap">
+<!-- Badges Scroll -->
+<div class="flex gap-stack-md overflow-x-auto pb-4 no-scrollbar -mx-container-margin px-container-margin">
+<!-- Match Score -->
+<div class="flex-shrink-0 glass-panel px-4 py-2 rounded-full flex items-center gap-2 neon-glow-primary">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-label-sm text-label-sm text-primary">98% Match</span>
+</div>
+<!-- Category -->
+<div class="flex-shrink-0 glass-panel px-4 py-2 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">cookie</span>
+<span class="font-label-sm text-label-sm text-tertiary">Speakeasy</span>
+</div>
+<!-- Indoor/Outdoor -->
+<div class="flex-shrink-0 glass-panel px-4 py-2 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">wb_sunny</span>
+<span class="font-label-sm text-label-sm text-secondary">Rooftop</span>
+</div>
+<!-- Budget -->
+<div class="flex-shrink-0 glass-panel px-4 py-2 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant">payments</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">$$$</span>
+</div>
+<!-- Duration -->
+<div class="flex-shrink-0 glass-panel px-4 py-2 rounded-full flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant">schedule</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2-3 hrs</span>
+</div>
+</div>
+<!-- AI Insights Block -->
+<section>
+<div class="glass-panel p-stack-lg rounded-lg relative overflow-hidden group">
+<!-- Background Glow -->
+<div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 blur-3xl rounded-full group-hover:bg-primary/20 transition-all duration-700"></div>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">AI Curated Insights</h3>
+</div>
+<p class="font-quote-italic text-quote-italic text-on-surface-variant leading-relaxed italic">
+                    "Perfect for couples who crave intimate energy without sacrificing style. The lighting is intentionally dim to flatter, and the acoustic treatment makes it easy to actually hear your date over the jazz house playlist."
+                </p>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="text-label-sm font-label-sm text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">Quiet Corner Tables</span>
+<span class="text-label-sm font-label-sm text-tertiary bg-tertiary/10 px-3 py-1 rounded-full border border-tertiary/20">Soft Lighting</span>
+</div>
+</div>
+</section>
+<!-- Date Night Checklist -->
+<section class="space-y-stack-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface">The Perfect Plan</h3>
+<div class="space-y-stack-md">
+<label class="glass-panel p-4 rounded-lg flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors group">
+<input class="w-6 h-6 rounded border-white/20 bg-transparent text-primary focus:ring-primary focus:ring-offset-0 transition-all" type="checkbox"/>
+<div class="flex-1">
+<p class="font-body-lg text-body-lg text-on-surface group-has-[:checked]:line-through group-has-[:checked]:opacity-50 transition-all">Arrive for the sunset golden hour</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant/60">Best views are between 6:30 - 7:15 PM</p>
+</div>
+</label>
+<label class="glass-panel p-4 rounded-lg flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors group">
+<input class="w-6 h-6 rounded border-white/20 bg-transparent text-primary focus:ring-primary focus:ring-offset-0 transition-all" type="checkbox"/>
+<div class="flex-1">
+<p class="font-body-lg text-body-lg text-on-surface group-has-[:checked]:line-through group-has-[:checked]:opacity-50 transition-all">Order the 'Midnight Orchid' cocktail</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant/60">A signature smoke-infused visual experience</p>
+</div>
+</label>
+<label class="glass-panel p-4 rounded-lg flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors group">
+<input class="w-6 h-6 rounded border-white/20 bg-transparent text-primary focus:ring-primary focus:ring-offset-0 transition-all" type="checkbox"/>
+<div class="flex-1">
+<p class="font-body-lg text-body-lg text-on-surface group-has-[:checked]:line-through group-has-[:checked]:opacity-50 transition-all">Head to the North Terrace for privacy</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant/60">Fewer crowds, more intimate atmosphere</p>
+</div>
+</label>
+</div>
+</section>
+<!-- Gallery / Visual Proof -->
+<section class="space-y-stack-lg">
+<div class="flex justify-between items-end">
+<h3 class="font-headline-md text-headline-md text-on-surface">The Vibe</h3>
+<span class="font-label-sm text-label-sm text-primary cursor-pointer">See All</span>
+</div>
+<div class="grid grid-cols-2 gap-stack-md">
+<div class="aspect-square rounded-lg overflow-hidden glass-panel">
+<img class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" data-alt="A close-up shot of a vibrant, smoke-infused cocktail in a crystal glass sitting on a dark marble bar. Neon lights from the background create colorful bokeh circles in shades of pink and teal. The scene is shot with a shallow depth of field, highlighting the condensation on the glass and the elegant garnish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFtGU7XO-suE2eO9TQYqPP4-bbQ3t_baGYU0_xEYKyxV2B8uN_MqMfw3W-O2Jat3dUq2DqNi8fVU17FAwqYSoaTtW10IuwyFyj7iuy1ue-b2UYUPav9u6GlBT3eKqQ5z11wymJ9TONJc1Xy_oA9k86RIdFQf-g2rvnOhad4euouDStt-JILh4D03iRalNx7r_8jsQCkwsVh-46g9HknetJy_gIPz_Ov14Z8qpXw2hxrSdyt8GKwp1e6jYXRfzdfBsXzG6_YCy0Qp0"/>
+</div>
+<div class="aspect-square rounded-lg overflow-hidden glass-panel">
+<img class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity" data-alt="An interior shot of an ultra-modern speakeasy with velvet booths and low-profile circular tables. The ceiling features a dramatic light installation of floating amber filaments. Shadows are deep and rich, punctuated by small candles on each table, creating an atmosphere of exclusivity and quiet luxury." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDc_T3Dv-9jSldB1Lr3QlWAbIMAK3vzcukn2oIcRN8Yfg1lWcZ57lM3d248m6rRTe31dPy4o5RayzyMit7JyJUhLfZfFs-FMhcrD--9AefBtPfxdvP39SjnCQP2K5Mp-YWjrXFt3Nkwi5G_rBH7Tyz9GsgYLTRIW-kvWQIiuYN_cAztPghSkIawo01ig8THzuDIVxnBbLL8i_a43_bA8r9e9x5Oi2X6wFQKloCi8TJrpmOSbIl746594GvOLCe6OgQa4BmJLr-ERn4"/>
+</div>
+</div>
+</section>
+<!-- Location Context -->
+<section class="glass-panel p-stack-lg rounded-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-4">Location</h3>
+<div class="w-full h-40 rounded-md overflow-hidden mb-4 relative bg-surface-container-high">
+<!-- Mock Map -->
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[48px]" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+<div class="absolute inset-0 bg-primary/5"></div>
+</div>
+<div class="flex justify-between items-center">
+<p class="font-body-md text-body-md text-on-surface-variant">1248 Neon Blvd, Arts District</p>
+<button class="flex items-center gap-2 text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined">directions</span>
+                    Open Maps
+                </button>
+</div>
+</section>
+</main>
+<!-- Bottom Sticky Action -->
+<div class="fixed bottom-0 left-0 right-0 p-container-margin bg-gradient-to-t from-background via-background/90 to-transparent z-50">
+<button class="w-full h-16 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center gap-3 shadow-[0_10px_40px_rgba(255,111,97,0.4)] animate-pulse-slow active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_add_on</span>
+<span class="font-headline-md text-headline-md uppercase tracking-widest text-[16px]">Plan Date Here</span>
+</button>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        // Simple checklist visual feedback
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const parent = this.closest('label');
+                if(this.checked) {
+                    parent.classList.add('bg-primary/5');
+                } else {
+                    parent.classList.remove('bg-primary/5');
+                }
+            });
+        });
+
+        // Hover effect for the main button to stop pulse on hover
+        const mainBtn = document.querySelector('.animate-pulse-slow');
+        mainBtn.addEventListener('mouseenter', () => {
+            mainBtn.classList.remove('animate-pulse-slow');
+            mainBtn.style.transform = 'scale(1.05)';
+        });
+        mainBtn.addEventListener('mouseleave', () => {
+            mainBtn.classList.add('animate-pulse-slow');
+            mainBtn.style.transform = 'scale(1)';
+        });
+    </script>
+</body></html>

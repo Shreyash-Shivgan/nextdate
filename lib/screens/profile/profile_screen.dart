@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 import '../../services/preferences_service.dart';
 import '../../services/supabase_service.dart';
 import '../../theme/app_theme.dart';
-import '../onboarding/onboarding_screen.dart';
+import '../../main.dart';
+import 'developer_diagnostics_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final VoidCallback onThemeChange;
@@ -473,6 +474,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 24),
+
+              // Developer Settings Section
+              Text(
+                "Developer Settings 🛠️",
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.coralAccent,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.developer_mode, color: AppTheme.coralAccent),
+                  title: Text(
+                    "Developer Diagnostics",
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  subtitle: const Text("View API performance and database health"),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DeveloperDiagnosticsScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
               const SizedBox(height: 32),
 
               // Save Changes
@@ -550,7 +582,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (mounted) {
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+                        MaterialPageRoute(builder: (context) => const MainAppLoader()),
                         (route) => false,
                       );
                     }

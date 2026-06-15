@@ -2,48 +2,44 @@ class Review {
   final String id;
   final String spotId;
   final String? userId;
-  final String coupleLabel;
+  final double rating;
   final String reviewText;
-  final String vibeRating;
-  final String? photoUrl;
   final DateTime visitedOn;
 
   Review({
     required this.id,
     required this.spotId,
     this.userId,
-    required this.coupleLabel,
+    required this.rating,
     required this.reviewText,
-    required this.vibeRating,
-    this.photoUrl,
     required this.visitedOn,
   });
+
+  String get coupleLabel => 'Couple ♥';
+  String get vibeRating => '⭐ ${rating.toStringAsFixed(1)}';
+  String? get photoUrl => null;
 
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
       id: json['id']?.toString() ?? '',
-      spotId: json['spot_id']?.toString() ?? '',
+      spotId: json['place_id']?.toString() ?? json['spot_id']?.toString() ?? '',
       userId: json['user_id']?.toString(),
-      coupleLabel: json['couple_label']?.toString() ?? 'User ♥',
+      rating: json['rating'] != null ? (json['rating'] as num).toDouble() : 5.0,
       reviewText: json['review_text']?.toString() ?? '',
-      vibeRating: json['vibe_rating']?.toString() ?? 'Romantic',
-      photoUrl: json['photo_url']?.toString(),
-      visitedOn: json['visited_on'] != null
-          ? DateTime.parse(json['visited_on'].toString())
-          : DateTime.now(),
+      visitedOn: json['created_at'] != null
+          ? DateTime.parse(json['created_at'].toString())
+          : (json['visited_on'] != null ? DateTime.parse(json['visited_on'].toString()) : DateTime.now()),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'spot_id': spotId,
+      'place_id': spotId,
       'user_id': userId,
-      'couple_label': coupleLabel,
+      'rating': rating,
       'review_text': reviewText,
-      'vibe_rating': vibeRating,
-      'photo_url': photoUrl,
-      'visited_on': visitedOn.toIso8601String().split('T').first,
+      'created_at': visitedOn.toIso8601String(),
     };
   }
 }

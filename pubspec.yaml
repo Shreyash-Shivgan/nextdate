@@ -47,6 +47,9 @@ dependencies:
   google_maps_flutter: ^2.5.3
   supabase_flutter: ^2.3.4
   image_picker: ^1.0.7
+  geolocator: ^11.0.0
+  flutter_local_notifications: ^17.0.0
+  permission_handler: ^11.3.0
 
 
 dev_dependencies:
@@ -71,7 +74,6 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
   assets:
     - assets/data/spots.json
 

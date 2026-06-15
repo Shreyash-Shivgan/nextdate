@@ -1,11 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../models/spot.dart';
 import '../../models/date_entry.dart';
 import '../../data/spots_repository.dart';
 import '../../services/supabase_service.dart';
+import '../../services/location_service.dart';
+import '../../services/preferences_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../home/home_screen.dart';
@@ -21,6 +26,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final SpotsRepository _repository = SpotsRepository();
   List<DateEntry> _entries = [];
   bool _isLoading = true;
+  Position? _currentPosition;
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
@@ -29,12 +36,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _loadHistory();
   }
 
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadHistory() async {
     setState(() {
       _isLoading = true;
     });
     try {
+      await _repository.loadSpots();
       final data = await SupabaseService().fetchHistory();
+      
+      // Get current location for centering and custom spot logging
+      try {
+        _currentPosition = await LocationService().getCurrentPosition();
+      } catch (_) {}
+
       setState(() {
         _entries = data;
         _isLoading = false;
@@ -47,7 +67,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  // Monday-based week identifier
   DateTime _getMonday(DateTime date) {
     final cleanDate = DateTime(date.year, date.month, date.day);
     return cleanDate.subtract(Duration(days: cleanDate.weekday - 1));
@@ -56,7 +75,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   int _calculateStreak(List<DateEntry> entries) {
     if (entries.isEmpty) return 0;
 
-    // 1. Group unique week Mondays
     final Set<DateTime> activeWeeks = {};
     for (final entry in entries) {
       activeWeeks.add(_getMonday(entry.visitedOn));
@@ -66,12 +84,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final currentMonday = _getMonday(today);
     final previousMonday = currentMonday.subtract(const Duration(days: 7));
 
-    // Check if the streak is active (at least one entry in current week or previous week)
     if (!activeWeeks.contains(currentMonday) && !activeWeeks.contains(previousMonday)) {
       return 0;
     }
 
-    // Start scanning backwards from the most recent active week
     int streak = 0;
     DateTime checkMonday = activeWeeks.contains(currentMonday) ? currentMonday : previousMonday;
 
@@ -91,15 +107,105 @@ class _HistoryScreenState extends State<HistoryScreen> {
       builder: (context) {
         return _AddMemoryBottomSheet(
           spots: _repository.spots,
+          currentPosition: _currentPosition,
         );
       },
     ).then((_) => _loadHistory());
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+    _applyMapStyle(controller);
+    _fitMapToMarkers();
+  }
+
+  void _applyMapStyle(GoogleMapController controller) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isDark) {
+      controller.setMapStyle(_darkMapStyle);
+    } else {
+      controller.setMapStyle(null);
+    }
+  }
+
+  void _fitMapToMarkers() {
+    if (_mapController == null || _entries.isEmpty) return;
+
+    final markers = _buildMarkers();
+    if (markers.isEmpty) {
+      if (_currentPosition != null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newLatLngZoom(
+            LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+            12.0,
+          ),
+        );
+      }
+      return;
+    }
+
+    double minLat = 90.0, maxLat = -90.0, minLng = 180.0, maxLng = -180.0;
+    for (final m in markers) {
+      if (m.position.latitude < minLat) minLat = m.position.latitude;
+      if (m.position.latitude > maxLat) maxLat = m.position.latitude;
+      if (m.position.longitude < minLng) minLng = m.position.longitude;
+      if (m.position.longitude > maxLng) maxLng = m.position.longitude;
+    }
+
+    // Zoom bounds padding
+    _mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat - 0.02, minLng - 0.02),
+          northeast: LatLng(maxLat + 0.02, maxLng + 0.02),
+        ),
+        60,
+      ),
+    );
+  }
+
+  Set<Marker> _buildMarkers() {
+    final Set<Marker> markers = {};
+    final prefService = PreferencesService();
+
+    for (final entry in _entries) {
+      // 1. Try search active repository spots
+      final spot = _repository.getSpotById(entry.spotId);
+      double? lat = spot?.lat;
+      double? lng = spot?.lng;
+
+      // 2. If not found in repository, fallback to local coordinates cache
+      if (lat == null || lng == null) {
+        lat = prefService.getSpotLat(entry.spotId);
+        lng = prefService.getSpotLng(entry.spotId);
+      }
+
+      // 3. Skip if coordinate unknown (e.g. some manual logs)
+      if (lat == null || lng == null) continue;
+
+      markers.add(
+        Marker(
+          markerId: MarkerId(entry.spotId),
+          position: LatLng(lat, lng),
+          infoWindow: InfoWindow(
+            title: entry.spotName,
+            snippet: DateFormat('MMMM d, yyyy').format(entry.visitedOn),
+          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+        ),
+      );
+    }
+    return markers;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    if (_mapController != null) {
+      _applyMapStyle(_mapController!);
+    }
 
     if (_isLoading) {
       return const Scaffold(
@@ -137,6 +243,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     final streak = _calculateStreak(_entries);
+    final markers = _buildMarkers();
 
     return Scaffold(
       body: RefreshIndicator(
@@ -146,7 +253,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           padding: const EdgeInsets.all(16),
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            // Streak Card (Gold background)
+            // Streak Card
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -196,6 +303,42 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             
             const SizedBox(height: 24),
+
+            // Visited spots map view
+            Text(
+              "Your Visited Date Map 🗺️",
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 250,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppTheme.softGrey.withOpacity(0.2),
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: GoogleMap(
+                  onMapCreated: _onMapCreated,
+                  initialCameraPosition: CameraPosition(
+                    target: _currentPosition != null
+                        ? LatLng(_currentPosition!.latitude, _currentPosition!.longitude)
+                        : const LatLng(19.076, 72.877),
+                    zoom: 12.0,
+                  ),
+                  markers: markers,
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: false,
+                  zoomControlsEnabled: false,
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 24),
             
             Text(
               "Your Date Timeline",
@@ -223,7 +366,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Thumbnail (60x60 rounded)
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: CachedNetworkImage(
@@ -240,7 +382,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        // Details
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +407,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 ),
                               ],
                               const SizedBox(height: 8),
-                              // Star Rating
                               Row(
                                 children: List.generate(5, (starIndex) {
                                   return Icon(
@@ -279,7 +419,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ],
                           ),
                         ),
-                        // Options button to delete
                         IconButton(
                           icon: const Icon(Icons.delete_outline, size: 18, color: AppTheme.softGrey),
                           onPressed: () async {
@@ -337,11 +476,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 }
 
-// Add Memory bottom sheet class
 class _AddMemoryBottomSheet extends StatefulWidget {
   final List<Spot> spots;
+  final Position? currentPosition;
 
-  const _AddMemoryBottomSheet({Key? key, required this.spots}) : super(key: key);
+  const _AddMemoryBottomSheet({
+    Key? key,
+    required this.spots,
+    this.currentPosition,
+  }) : super(key: key);
 
   @override
   State<_AddMemoryBottomSheet> createState() => _AddMemoryBottomSheetState();
@@ -350,7 +493,6 @@ class _AddMemoryBottomSheet extends StatefulWidget {
 class _AddMemoryBottomSheetState extends State<_AddMemoryBottomSheet> {
   final _formKey = GlobalKey<FormState>();
   
-  // Form fields state
   Spot? _selectedSpot;
   String _customSpotName = '';
   DateTime _visitedDate = DateTime.now();
@@ -392,8 +534,12 @@ class _AddMemoryBottomSheetState extends State<_AddMemoryBottomSheet> {
 
     if (_useCustomSpot) {
       spotName = _customSpotName.trim();
-      imageUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80"; // Default restaurant picture
+      imageUrl = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80";
       spotId = "custom_${DateTime.now().millisecondsSinceEpoch}";
+      
+      final lat = widget.currentPosition?.latitude ?? 19.076;
+      final lng = widget.currentPosition?.longitude ?? 72.877;
+      await PreferencesService().cacheSpotCoords(spotId, lat, lng);
     } else {
       if (_selectedSpot == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -407,6 +553,7 @@ class _AddMemoryBottomSheetState extends State<_AddMemoryBottomSheet> {
       spotName = _selectedSpot!.name;
       imageUrl = _selectedSpot!.imageUrl;
       spotId = _selectedSpot!.id;
+      await PreferencesService().cacheSpotCoords(spotId, _selectedSpot!.lat, _selectedSpot!.lng);
     }
 
     try {
@@ -498,7 +645,6 @@ class _AddMemoryBottomSheetState extends State<_AddMemoryBottomSheet> {
               ),
               const SizedBox(height: 20),
               
-              // Custom Spot switcher
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -516,7 +662,6 @@ class _AddMemoryBottomSheetState extends State<_AddMemoryBottomSheet> {
               ),
               const SizedBox(height: 12),
 
-              // Spot Selector
               if (!_useCustomSpot) ...[
                 DropdownButtonFormField<Spot>(
                   hint: const Text("Select Visited Spot"),
@@ -538,7 +683,6 @@ class _AddMemoryBottomSheetState extends State<_AddMemoryBottomSheet> {
                   },
                 ),
               ] else ...[
-                // Custom Name Field
                 TextFormField(
                   decoration: InputDecoration(
                     labelText: "Custom Spot Name",
@@ -554,7 +698,6 @@ class _AddMemoryBottomSheetState extends State<_AddMemoryBottomSheet> {
               ],
               const SizedBox(height: 16),
 
-              // Date Picker
               InkWell(
                 onTap: _selectDate,
                 child: Container(
@@ -581,7 +724,6 @@ class _AddMemoryBottomSheetState extends State<_AddMemoryBottomSheet> {
               ),
               const SizedBox(height: 16),
 
-              // Rating selection (1-5)
               const Text("Date Rating:"),
               const SizedBox(height: 6),
               Row(
@@ -604,7 +746,6 @@ class _AddMemoryBottomSheetState extends State<_AddMemoryBottomSheet> {
               ),
               const SizedBox(height: 16),
 
-              // Notes Text Field
               TextFormField(
                 controller: _notesController,
                 maxLines: 3,
@@ -617,7 +758,6 @@ class _AddMemoryBottomSheetState extends State<_AddMemoryBottomSheet> {
               ),
               const SizedBox(height: 28),
 
-              // Save Button
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -634,3 +774,176 @@ class _AddMemoryBottomSheetState extends State<_AddMemoryBottomSheet> {
     );
   }
 }
+
+const String _darkMapStyle = '''
+[
+  {
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#1d2c3d"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#8ec3b9"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#1a3646"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.country",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#4b687a"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.land_parcel",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#64779e"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.province",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#4b687a"
+      }
+    ]
+  },
+  {
+    "featureType": "landscape.man_made",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#334e68"
+      }
+    ]
+  },
+  {
+    "featureType": "landscape.natural",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#162536"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#1d2c3d"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#6f9ba5"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#122a3a"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#3b736b"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#304a5d"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#98a5be"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#2c4557"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#1f384a"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#e9bc62"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#0e1626"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#4e5d6c"
+      }
+    ]
+  }
+]
+''';

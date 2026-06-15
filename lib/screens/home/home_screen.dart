@@ -2,10 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../services/preferences_service.dart';
 import '../../theme/app_theme.dart';
 import '../discover/discover_screen.dart';
 import '../surprise/surprise_screen.dart';
+import '../radar/radar_screen.dart';
 import '../history/history_screen.dart';
 import '../profile/profile_screen.dart';
 
@@ -29,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const DiscoverScreen(),
     const SurpriseModeScreen(),
+    const RadarScreen(),
     const HistoryScreen(),
   ];
 
@@ -162,6 +163,11 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: Icon(Icons.card_giftcard_outlined),
               activeIcon: Icon(Icons.card_giftcard),
               label: "Surprise",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.radar_outlined),
+              activeIcon: Icon(Icons.radar),
+              label: "Radar",
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.history_outlined),

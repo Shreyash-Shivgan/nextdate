@@ -106,21 +106,16 @@ class SupabaseService {
   Future<void> submitReview({
     required String spotId,
     required String reviewText,
-    required String vibeRating,
-    String? photoUrl,
+    required double rating,
   }) async {
     if (uid.isEmpty) return;
-    final partner1Name = PreferencesService().partner1Name;
-    final coupleLabel = partner1Name.isNotEmpty ? '$partner1Name ♥' : 'User ♥';
 
     await supabase.from('reviews').insert({
-      'spot_id': spotId,
+      'place_id': spotId,
       'user_id': uid,
-      'couple_label': coupleLabel,
+      'rating': rating,
       'review_text': reviewText,
-      'vibe_rating': vibeRating,
-      'photo_url': photoUrl,
-      'visited_on': DateTime.now().toIso8601String().split('T').first,
+      'created_at': DateTime.now().toIso8601String(),
     });
   }
 
@@ -130,7 +125,7 @@ class SupabaseService {
       final response = await supabase
           .from('reviews')
           .select()
-          .eq('spot_id', spotId)
+          .eq('place_id', spotId)
           .order('created_at', ascending: false);
 
       return response.map<Review>((row) => Review.fromJson(row)).toList();

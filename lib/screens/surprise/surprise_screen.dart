@@ -7,7 +7,6 @@ import '../../models/spot.dart';
 import '../../data/spots_repository.dart';
 import '../../services/preferences_service.dart';
 import '../../theme/app_theme.dart';
-import '../../widgets/empty_state.dart';
 
 class SurpriseModeScreen extends StatefulWidget {
   const SurpriseModeScreen({Key? key}) : super(key: key);
@@ -19,11 +18,6 @@ class SurpriseModeScreen extends StatefulWidget {
 class _SurpriseModeScreenState extends State<SurpriseModeScreen> with SingleTickerProviderStateMixin {
   final SpotsRepository _repository = SpotsRepository();
   final PreferencesService _prefs = PreferencesService();
-
-  // Filter Form State
-  int? _selectedBudget; // null = any
-  final List<String> _selectedVibes = [];
-  String? _selectedNeighborhood;
 
   // Flow State
   Spot? _currentSurpriseSpot;
@@ -76,29 +70,61 @@ class _SurpriseModeScreenState extends State<SurpriseModeScreen> with SingleTick
     });
   }
 
-  void _generateSurprise() async {
+  void _generatePresetSurprise(String type) async {
     final disliked = _prefs.dislikedSpotIds;
-    // Filter spot database by selected options
     List<Spot> pool = _repository.spots.where((s) => !disliked.contains(s.id)).toList();
 
-    if (_selectedBudget != null) {
-      pool = pool.where((s) => s.budget == _selectedBudget).toList();
+    switch (type) {
+      case 'first_date':
+        pool = pool.where((s) =>
+          (s.category.toLowerCase() == 'cafe' || s.category.toLowerCase() == 'restaurant') &&
+          s.budget <= 2 &&
+          s.vibe.any((v) => v.toLowerCase() == 'cozy')
+        ).toList();
+        break;
+
+      case 'coffee_date':
+        pool = pool.where((s) =>
+          s.category.toLowerCase() == 'cafe' &&
+          s.budget == 1
+        ).toList();
+        break;
+
+      case 'evening_plan':
+        pool = pool.where((s) =>
+          (s.category.toLowerCase() == 'restaurant' || s.category.toLowerCase() == 'bar') &&
+          s.budget <= 3 &&
+          s.indoor
+        ).toList();
+        break;
+
+      case 'budget_friendly':
+        pool = pool.where((s) => s.budget == 1).toList();
+        break;
+
+      case 'something_different':
+        pool = pool.where((s) =>
+          s.category.toLowerCase() == 'attraction' ||
+          s.category.toLowerCase() == 'museum' ||
+          s.category.toLowerCase() == 'park'
+        ).toList();
+        break;
+
+      case 'surprise_me':
+      default:
+        break;
     }
 
-    if (_selectedVibes.isNotEmpty) {
-      pool = pool.where((s) => s.vibe.any((v) => _selectedVibes.contains(v))).toList();
-    }
-
-    if (_selectedNeighborhood != null) {
-      pool = pool.where((s) => s.neighborhood.toLowerCase() == _selectedNeighborhood!.toLowerCase()).toList();
+    if (pool.isEmpty) {
+      pool = _repository.spots.where((s) => !disliked.contains(s.id)).toList();
     }
 
     if (pool.isEmpty) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text("No Matches"),
-          content: const Text("No spots found matching those filters. Try widening your criteria!"),
+          title: const Text("No Vibes Found 🥲"),
+          content: const Text("No spots match the criteria. Try resetting or add more data!"),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -110,7 +136,6 @@ class _SurpriseModeScreenState extends State<SurpriseModeScreen> with SingleTick
       return;
     }
 
-    // Pick random spot
     final random = Random();
     final chosen = pool[random.nextInt(pool.length)];
 
@@ -136,9 +161,6 @@ class _SurpriseModeScreenState extends State<SurpriseModeScreen> with SingleTick
     setState(() {
       _currentSurpriseSpot = null;
       _isUnlocked = false;
-      _selectedBudget = null;
-      _selectedVibes.clear();
-      _selectedNeighborhood = null;
     });
     _animController.reset();
   }
@@ -178,14 +200,14 @@ class _SurpriseModeScreenState extends State<SurpriseModeScreen> with SingleTick
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "🎁 Surprise Mode",
+                "I'm feeling lucky 🎲",
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
-                "Plan a surprise date. Set the filters, we'll do the rest.",
+                "Let fate decide. Set your boundaries, we'll cook up the perfect date.",
                 style: theme.textTheme.bodyMedium?.copyWith(color: AppTheme.softGrey),
               ),
               const SizedBox(height: 24),
@@ -201,98 +223,114 @@ class _SurpriseModeScreenState extends State<SurpriseModeScreen> with SingleTick
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Budget Selector
-        Text(
-          "Budget Preference (Optional)",
-          style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            _buildBudgetFilterChip(1, "₹"),
-            const SizedBox(width: 8),
-            _buildBudgetFilterChip(2, "₹₹"),
-            const SizedBox(width: 8),
-            _buildBudgetFilterChip(3, "₹₹₹"),
-          ],
-        ),
-        const SizedBox(height: 24),
-
-        // Vibes Selection
-        Text(
-          "Vibe Preference (Optional)",
-          style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _vibes.map((vibe) {
-            final isSelected = _selectedVibes.contains(vibe);
-            return FilterChip(
-              label: Text(vibe),
-              selected: isSelected,
-              onSelected: (selected) {
-                setState(() {
-                  if (selected) {
-                    _selectedVibes.add(vibe);
-                  } else {
-                    _selectedVibes.remove(vibe);
-                  }
-                });
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 6,
+          itemBuilder: (context, index) {
+            final options = [
+              {
+                "type": "first_date",
+                "emoji": "❤️",
+                "title": "First Date Vibe",
+                "desc": "Cozy spots that make it easy to talk",
               },
-              selectedColor: AppTheme.coralAccent,
-              checkmarkColor: isDark ? AppTheme.primaryNavy : Colors.white,
-              labelStyle: TextStyle(
-                color: isSelected
-                    ? (isDark ? AppTheme.primaryNavy : Colors.white)
-                    : (isDark ? Colors.white70 : AppTheme.primaryNavy),
+              {
+                "type": "coffee_date",
+                "emoji": "☕",
+                "title": "Coffee Run",
+                "desc": "Low-pressure coffee dates & cafes",
+              },
+              {
+                "type": "evening_plan",
+                "emoji": "🌙",
+                "title": "Evening Plan",
+                "desc": "Restaurants & bars for sunset vibes",
+              },
+              {
+                "type": "budget_friendly",
+                "emoji": "💸",
+                "title": "Budget Friendly",
+                "desc": "High-vibe, pocket-friendly places",
+              },
+              {
+                "type": "something_different",
+                "emoji": "🎉",
+                "title": "Something Different",
+                "desc": "Museums, parks, & adventure spots",
+              },
+              {
+                "type": "surprise_me",
+                "emoji": "✨",
+                "title": "Surprise Me",
+                "desc": "Total wild card. Let fate choose",
+              },
+            ];
+            final opt = options[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: InkWell(
+                onTap: () => _generatePresetSurprise(opt['type']!),
+                borderRadius: BorderRadius.circular(16),
+                child: Ink(
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xff162536) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? Colors.white.withOpacity(0.08) : Colors.grey.shade200,
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Text(
+                          opt['emoji']!,
+                          style: const TextStyle(fontSize: 28),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                opt['title']!,
+                                style: GoogleFonts.outfit(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                opt['desc']!,
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: AppTheme.softGrey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: AppTheme.softGrey,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             );
-          }).toList(),
-        ),
-        const SizedBox(height: 24),
-
-        // Neighborhood Selection
-        Text(
-          "Neighborhood (Optional)",
-          style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          value: _selectedNeighborhood,
-          hint: const Text("Select Neighborhood"),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: isDark ? const Color(0xff162536) : Colors.white,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          items: _neighborhoods.map((n) {
-            return DropdownMenuItem(
-              value: n,
-              child: Text(n),
-            );
-          }).toList(),
-          onChanged: (val) {
-            setState(() {
-              _selectedNeighborhood = val;
-            });
           },
-        ),
-
-        const SizedBox(height: 48),
-
-        // Generate Button
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed: _generateSurprise,
-            child: Text(
-              "Generate Surprise Date! 🎁",
-              style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
         ),
       ],
     );
@@ -345,13 +383,13 @@ class _SurpriseModeScreenState extends State<SurpriseModeScreen> with SingleTick
           ),
           const SizedBox(height: 48),
           
-          // I'm Here Button
+          // Fix my date Button
           SizedBox(
             width: double.infinity,
             height: 54,
             child: ElevatedButton.icon(
-              icon: const Icon(Icons.location_on, color: Colors.white),
-              label: Text("I'm Here 📍", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16)),
+              icon: const Icon(Icons.favorite, color: Colors.white),
+              label: Text("Fix my date 😭", style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16)),
               onPressed: _unlockSurprise,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.coralAccent,
@@ -521,34 +559,4 @@ class _SurpriseModeScreenState extends State<SurpriseModeScreen> with SingleTick
         ],
       ),
     );
-  }
-
-  Widget _buildBudgetFilterChip(int level, String label) {
-    final isSelected = _selectedBudget == level;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return Expanded(
-      child: FilterChip(
-        label: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: isSelected
-                  ? (isDark ? AppTheme.primaryNavy : Colors.white)
-                  : AppTheme.warmGold,
-            ),
-          ),
-        ),
-        selected: isSelected,
-        onSelected: (selected) {
-          setState(() {
-            _selectedBudget = selected ? level : null;
-          });
-        },
-        selectedColor: AppTheme.coralAccent,
-        checkmarkColor: isDark ? AppTheme.primaryNavy : Colors.white,
-      ),
-    );
-  }
-}
+  }}
