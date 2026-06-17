@@ -1,11 +1,11 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../theme/app_theme.dart';
 import '../discover/discover_screen.dart';
 import '../surprise/surprise_screen.dart';
-import '../radar/radar_screen.dart';
 import '../history/history_screen.dart';
 import '../profile/profile_screen.dart';
 
@@ -19,17 +19,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-
   late Timer _clockTimer;
   String _timeString = '';
-
-  // Theme override state (propagates to main.dart)
   String _themeName = '';
 
   final List<Widget> _screens = [
     const DiscoverScreen(),
     const SurpriseModeScreen(),
-    const RadarScreen(),
     const HistoryScreen(),
   ];
 
@@ -82,6 +78,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _themeName = isDark ? "Evening Mode 🌙" : "Afternoon Mode ☀️";
 
     return Scaffold(
+      extendBody: true,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: isDark ? AppTheme.primaryNavy : AppTheme.bgLight,
         elevation: 0,
@@ -131,49 +129,126 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
+      bottomNavigationBar: _buildRedesignedNavbar(isDark),
+    );
+  }
+
+  Widget _buildRedesignedNavbar(bool isDark) {
+    return Container(
+      color: Colors.transparent,
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        bottom: MediaQuery.of(context).padding.bottom + 16,
+        top: 8,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(100),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            height: 64,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(isDark ? 0.08 : 0.6),
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(
+                color: Colors.white.withOpacity(isDark ? 0.15 : 0.3),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+                if (isDark)
+                  BoxShadow(
+                    color: AppTheme.primaryNavy.withOpacity(0.05),
+                    blurRadius: 15,
+                    spreadRadius: 0,
+                  ),
+              ],
             ),
-          ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildNavbarItem(
+                  index: 0,
+                  icon: Icons.explore_outlined,
+                  activeIcon: Icons.explore,
+                  label: "Discover",
+                  isDark: isDark,
+                ),
+                _buildNavbarItem(
+                  index: 1,
+                  icon: Icons.casino_outlined,
+                  activeIcon: Icons.casino,
+                  label: "Surprise",
+                  isDark: isDark,
+                ),
+                _buildNavbarItem(
+                  index: 2,
+                  icon: Icons.history_outlined,
+                  activeIcon: Icons.history,
+                  label: "History",
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
         ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: isDark ? const Color(0xff162536) : Colors.white,
-          selectedItemColor: AppTheme.coralAccent,
-          unselectedItemColor: AppTheme.softGrey,
-          selectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: GoogleFonts.inter(fontSize: 11),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.explore_outlined),
-              activeIcon: Icon(Icons.explore),
-              label: "Discover",
+      ),
+    );
+  }
+
+  Widget _buildNavbarItem({
+    required int index,
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+    required bool isDark,
+  }) {
+    final isSelected = _currentIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = index),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: isSelected
+            ? BoxDecoration(
+                color: AppTheme.coralAccent.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(100),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.coralAccent.withOpacity(0.1),
+                    blurRadius: 8,
+                  ),
+                ],
+              )
+            : const BoxDecoration(),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSelected ? activeIcon : icon,
+              color: isSelected
+                  ? AppTheme.coralAccent
+                  : (isDark ? Colors.white70 : AppTheme.primaryNavy.withOpacity(0.6)),
+              size: 22,
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.card_giftcard_outlined),
-              activeIcon: Icon(Icons.card_giftcard),
-              label: "Surprise",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.radar_outlined),
-              activeIcon: Icon(Icons.radar),
-              label: "Radar",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.history_outlined),
-              activeIcon: Icon(Icons.history),
-              label: "History",
-            ),
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: GoogleFonts.outfit(
+                  color: AppTheme.coralAccent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ],
         ),
       ),

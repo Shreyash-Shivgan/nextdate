@@ -34,7 +34,11 @@ class GeoapifyService {
       'catering.bar',
       'leisure.park',
       'tourism.attraction',
-      'entertainment.museum'
+      'tourism.sights',
+      'entertainment.museum',
+      'amenity.library',
+      'commercial.books',
+      'entertainment.culture',
     ];
 
     final uri = Uri.parse('https://api.geoapify.com/v2/places').replace(
@@ -140,11 +144,14 @@ class GeoapifyService {
     return fallbackSpots;
   }
 
-  /// Returns null if coordinates are invalid (skip this feature).
   Spot? _mapToSpot(Map<String, dynamic> place, SpotsRepository repository, double userLat, double userLng) {
     final props = place['properties'] ?? {};
+    final String? rawName = props['name'] as String?;
+    if (rawName == null || rawName.trim().isEmpty) {
+      return null; // Skip features without a real commercial venue name
+    }
+    final String name = rawName.trim();
     final String id = props['place_id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
-    final String name = props['name'] ?? props['street'] ?? props['formatted'] ?? 'Date Spot';
 
     // --- Parse coordinates safely ---
     if (place['geometry'] == null || place['geometry']['coordinates'] == null) {
@@ -175,9 +182,19 @@ class GeoapifyService {
 
     final categoriesVal = props['categories'];
     final List categoriesList = categoriesVal is List ? categoriesVal : [];
-    final String categoryText = categoriesList.isNotEmpty ? categoriesList.first.toString() : '';
+    
+    String category = 'Activity';
+    for (final catVal in categoriesList) {
+      final normalized = Spot.normalizeCategory(catVal.toString());
+      if (normalized != 'Activity') {
+        category = normalized;
+        break;
+      }
+    }
 
-    final String category = Spot.normalizeCategory(categoryText);
+    if (category == 'Activity') {
+      return null; // Skip generic unmatched activities to only keep primary date spots
+    }
     final List<String> vibe = _mapVibe(category);
 
     int budget = 2;
@@ -277,32 +294,79 @@ class GeoapifyService {
         'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80',
         'https://images.unsplash.com/photo-1498804103079-a6351b050096?w=800&q=80',
         'https://images.unsplash.com/photo-1453614512568-c4024d13c247?w=800&q=80',
+        'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=800&q=80',
+        'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=80',
+        'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80',
+        'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=800&q=80',
+        'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=800&q=80',
+        'https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=800&q=80',
+        'https://images.unsplash.com/photo-1485182708500-e8f1f318ba72?w=800&q=80',
       ],
       'Restaurant': [
         'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
         'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&q=80',
         'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+        'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=800&q=80',
+        'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80',
+        'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80',
+        'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=800&q=80',
+        'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?w=800&q=80',
+        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80',
+        'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80',
       ],
       'Park': [
         'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&q=80',
         'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80',
         'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80',
+        'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80',
+        'https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=800&q=80',
+        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80',
+        'https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=800&q=80',
+        'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=800&q=80',
+        'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80',
+        'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&q=80',
       ],
       'Museum': [
         'https://images.unsplash.com/photo-1580537659444-1297eb700224?w=800&q=80',
         'https://images.unsplash.com/photo-1569003339405-ea396a5a8a90?w=800&q=80',
+        'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=800&q=80',
+        'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&q=80',
+        'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80',
+        'https://images.unsplash.com/photo-1491841538374-7227d8ce6a6a?w=800&q=80',
+        'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&q=80',
+        'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&q=80',
+        'https://images.unsplash.com/photo-1554941068-a252680d25d9?w=800&q=80',
+        'https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=800&q=80',
       ],
       'Bar': [
         'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80',
         'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800&q=80',
+        'https://images.unsplash.com/photo-1574096079513-d8259312b785?w=800&q=80',
+        'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=80',
+        'https://images.unsplash.com/photo-1527661591475-527312dd65f5?w=800&q=80',
+        'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=800&q=80',
+        'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=800&q=80',
+        'https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800&q=80',
+        'https://images.unsplash.com/photo-1560512823-829485b8bf24?w=800&q=80',
+        'https://images.unsplash.com/photo-1516997121675-4c2d04f3ba15?w=800&q=80',
       ],
       'Attraction': [
         'https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=80',
         'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80',
+        'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800&q=80',
+        'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=800&q=80',
+        'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=80',
+        'https://images.unsplash.com/photo-1533240332313-0db49b439ad3?w=800&q=80',
+        'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80',
+        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=800&q=80',
+        'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&q=80',
+        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80',
       ],
       'Activity': [
         'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80',
         'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&q=80',
+        'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&q=80',
+        'https://images.unsplash.com/photo-1516280440614-37939bbacd6a?w=800&q=80',
       ],
     };
 

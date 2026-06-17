@@ -49,8 +49,8 @@ class Spot {
     if (lower.contains('cafe')) return 'Cafe';
     if (lower.contains('bar') || lower.contains('pub') || lower.contains('lounge')) return 'Bar';
     if (lower.contains('park') || lower.contains('garden')) return 'Park';
-    if (lower.contains('attraction') || lower.contains('tourism')) return 'Attraction';
-    if (lower.contains('museum')) return 'Museum';
+    if (lower.contains('museum') || lower.contains('library') || lower.contains('gallery') || lower.contains('book')) return 'Museum';
+    if (lower.contains('attraction') || lower.contains('tourism') || lower.contains('sight') || lower.contains('monument') || lower.contains('culture')) return 'Attraction';
     return 'Activity';
   }
 

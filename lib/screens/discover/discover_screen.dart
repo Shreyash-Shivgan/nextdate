@@ -56,17 +56,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     {"label": "25 km", "value": 25000},
   ];
 
-  // Lightweight category chips (Zepto-style)
-  final List<Map<String, String>> _categoryChips = [
-    {"id": "", "name": "All"},
-    {"id": "Restaurant", "name": "Food"},
-    {"id": "Cafe", "name": "Coffee"},
-    {"id": "Bar", "name": "Nightlife"},
-    {"id": "Park", "name": "Outdoor"},
-    {"id": "Museum", "name": "Culture"},
-    {"id": "Attraction", "name": "Explore"},
-  ];
-
   // Discover section rails
   final List<Map<String, String>> _sectionRails = [
     {"title": "🔥 Trending Tonight", "filter": ""},
@@ -372,52 +361,75 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   Widget _buildRadiusSelector(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final double currentKm = _selectedRadiusMeters / 1000.0;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.tune, size: 14, color: isDark ? Colors.white54 : AppTheme.softGrey),
-          const SizedBox(width: 6),
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _radiusOptions.map((opt) {
-                  final label = opt['label'] as String;
-                  final val = opt['value'] as int;
-                  final isSel = _selectedRadiusMeters == val;
-
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 6.0),
-                    child: ChoiceChip(
-                      label: Text(label),
-                      selected: isSel,
-                      onSelected: (selected) {
-                        if (selected) {
-                          setState(() => _selectedRadiusMeters = val);
-                          if (_currentPosition != null) {
-                            _fetchSpots(_currentPosition!.latitude, _currentPosition!.longitude);
-                          }
-                        }
-                      },
-                      showCheckmark: false,
-                      labelStyle: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: isSel
-                            ? (isDark ? AppTheme.primaryNavy : Colors.white)
-                            : (isDark ? Colors.white70 : AppTheme.primaryNavy),
-                      ),
-                      selectedColor: AppTheme.coralAccent,
-                      backgroundColor: isDark ? const Color(0xff162536) : Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.tune, size: 14, color: isDark ? Colors.white54 : AppTheme.softGrey),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Search Radius",
+                    style: GoogleFonts.outfit(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : AppTheme.primaryNavy,
                     ),
-                  );
-                }).toList(),
+                  ),
+                ],
               ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.coralAccent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Text(
+                  "${currentKm.toStringAsFixed(1)} km",
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.coralAccent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 4,
+              activeTrackColor: AppTheme.coralAccent,
+              inactiveTrackColor: Colors.white.withOpacity(0.1),
+              thumbColor: AppTheme.coralAccent,
+              overlayColor: AppTheme.coralAccent.withOpacity(0.2),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+            ),
+            child: Slider(
+              min: 1.0,
+              max: 25.0,
+              divisions: 48,
+              value: currentKm.clamp(1.0, 25.0),
+              onChanged: (val) {
+                setState(() {
+                  _selectedRadiusMeters = (val * 1000).toInt();
+                });
+              },
+              onChangeEnd: (val) {
+                if (_currentPosition != null) {
+                  _fetchSpots(_currentPosition!.latitude, _currentPosition!.longitude);
+                } else {
+                  _refreshRecommendations();
+                }
+              },
             ),
           ),
         ],
@@ -425,62 +437,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
-  Widget _buildCategoryChips(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return SizedBox(
-      height: 38,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-        itemCount: _categoryChips.length,
-        itemBuilder: (context, index) {
-          final chip = _categoryChips[index];
-          final catId = chip['id']!;
-          final catName = chip['name']!;
-          final isSelected = catId.isEmpty
-              ? (_selectedCategory == null)
-              : (_selectedCategory == catId);
-
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 3.0),
-            child: ChoiceChip(
-              label: Text(catName),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) {
-                  setState(() {
-                    _selectedCategory = catId.isEmpty ? null : catId;
-                  });
-                  _refreshRecommendations();
-                }
-              },
-              showCheckmark: false,
-              labelStyle: GoogleFonts.outfit(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isSelected
-                    ? Colors.white
-                    : (isDark ? Colors.white70 : AppTheme.primaryNavy),
-              ),
-              selectedColor: AppTheme.coralAccent,
-              backgroundColor: isDark ? const Color(0xff162536) : Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(
-                  color: isSelected ? AppTheme.coralAccent : AppTheme.softGrey.withOpacity(0.2),
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   Widget _buildFallbackBanner(BuildContext context) {
     final theme = Theme.of(context);
@@ -664,11 +620,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
               const SizedBox(height: 8),
 
-              // Category chips (single row, lightweight)
-              _buildCategoryChips(context),
-
-              const SizedBox(height: 12),
-
               // --- Main Content ---
               if (_isLoadingSpots) ...[
                 _buildLoadingState(context),
@@ -681,31 +632,22 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   onAction: _resetFilters,
                 ),
               ] else ...[
-                // When a specific category is selected, show a flat filtered rail
-                if (_selectedCategory != null) ...[
-                  _buildHorizontalRail(
-                    context,
-                    "${_categoryChips.firstWhere((c) => c['id'] == _selectedCategory, orElse: () => {"id": "", "name": "All"})['name']} Spots",
-                    _allScoredSpots,
-                  ),
-                ] else ...[
-                  // Tonight's Move hero card
-                  if (_tonightPick != null) ...[
-                    TonightPickBanner(spot: _tonightPick!),
-                    const SizedBox(height: 8),
-                  ],
-
-                  // Section rails (Zepto/Netflix/Spotify style)
-                  for (final section in _sectionRails) ...[
-                    _buildHorizontalRail(
-                      context,
-                      section['title']!,
-                      _getSpotsForSection(section['filter']!),
-                    ),
-                  ],
+                // Tonight's Move hero card
+                if (_tonightPick != null) ...[
+                  TonightPickBanner(spot: _tonightPick!),
+                  const SizedBox(height: 8),
                 ],
 
-                const SizedBox(height: 30),
+                // Section rails (Zepto/Netflix/Spotify style)
+                for (final section in _sectionRails) ...[
+                  _buildHorizontalRail(
+                    context,
+                    section['title']!,
+                    _getSpotsForSection(section['filter']!),
+                  ),
+                ],
+
+                const SizedBox(height: 120),
               ],
             ],
           ),
